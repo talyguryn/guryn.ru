@@ -1,31 +1,33 @@
- # syntax=docker/dockerfile:1
- # Build stage: install dependencies and build the Next.js app
- FROM node:22-alpine AS builder
- WORKDIR /app
+# syntax=docker/dockerfile:1.5
+# Build stage
+FROM node:22-alpine AS builder
+WORKDIR /app
 
- # Install dependencies
- COPY package.json package-lock.json ./
- RUN npm ci --quiet
+# Enable caching for npm dependencies
+RUN --mount=type=cache,target=/root/.npm mkdir -p /root/.npm
 
- # Copy application source
- COPY . .
+# Install dependencies
+COPY package.json package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --quiet
 
- # Build the Next.js application
- RUN npm run build
+# Copy source code
+COPY . .
 
- # Production stage: minimal image to run the app
- FROM node:22-alpine AS runner
- WORKDIR /app
- ENV NODE_ENV=production
+# Build the Next.js app
+RUN --mount=type=cache,target=/root/.npm \
+    npm run build
 
- # Copy only necessary files for production
- COPY --from=builder /app/.next ./.next
- COPY --from=builder /app/public ./public
- COPY --from=builder /app/node_modules ./node_modules
- COPY --from=builder /app/package.json ./package.json
+# Runtime stage
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
 
- # Expose application port
- EXPOSE 3000
+# Copy necessary files from builder
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 
- # Start the Next.js application
- CMD ["npm", "start"]
+EXPOSE 3000
+CMD ["npm", "start"]

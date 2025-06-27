@@ -1,0 +1,10 @@
+.git
+node_modules
+Dockerfile
+.dockerignore
+.github
+*.log
+npm-debug.log*
+*.test.js
+*.md
+.vscode

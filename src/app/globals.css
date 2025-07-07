@@ -22,11 +22,16 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 a {
   cursor: pointer;
+  text-decoration: none;
+}
+
+.underlined {
   text-decoration: underline;
   text-decoration-thickness: 0.01em;
   text-underline-offset: 0.4em;
@@ -35,4 +40,52 @@ a {
   &:hover {
     text-decoration-color: inherit;
   }
+}
+
+h1 {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+h3 {
+  font-size: 1.25em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+h4 {
+  font-size: 1.125em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+h5 {
+  font-size: 1em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+h6 {
+  font-size: 0.875em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+
+p {
+  margin: 0.5em 0;
+  line-height: 1.6;
+}
+
+:root {
+  --sh-class: #7abaff;
+  --sh-identifier: #e0e6ef;
+  --sh-sign: #b0b8c1;
+  --sh-property: #4fc3ff;
+  --sh-entity: #5be6c1;
+  --sh-jsxliterals: #b3b7ff;
+  --sh-string: #4fffd7;
+  --sh-keyword: #ff8b7b;
+  --sh-comment: #6c6c6c;
 }

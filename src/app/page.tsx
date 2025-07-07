@@ -126,7 +126,7 @@ export default async function Page() {
                 href={project.url}
                 target="_blank"
               >
-                <span className="font-semibold md:w-1/3 w-full underlined">
+                <span className="font-semibold md:w-1/3 w-full underlined mb-1.5">
                   {project.name}
                 </span>
                 {project.description && (

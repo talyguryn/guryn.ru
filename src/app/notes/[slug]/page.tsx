@@ -3,6 +3,10 @@ import { CustomMDX } from '@/app/components/mdx';
 import { formatDate, getNotesPosts } from '@/app/notes/utils';
 import { baseUrl } from '@/app/sitemap';
 
+type PageParams = {
+  slug: string;
+};
+
 export async function generateStaticParams() {
   let posts = getNotesPosts();
 
@@ -11,14 +15,13 @@ export async function generateStaticParams() {
   }));
 }
 
-type PageParams = {
-  params: {
-    slug: string;
-  };
-};
-
-export function generateMetadata({ params }: PageParams) {
-  let post = getNotesPosts().find((post) => post.slug === params.slug);
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<PageParams>;
+}) {
+  const { slug } = await params;
+  let post = getNotesPosts().find((post) => post.slug === slug);
   if (!post) {
     return;
   }
@@ -41,7 +44,7 @@ export function generateMetadata({ params }: PageParams) {
       description,
       type: 'article',
       publishedTime,
-      // url: `${baseUrl}/notes/${post.slug}`,
+      url: `${baseUrl}/notes/${post.slug}`,
       images: [
         {
           url: ogImage,
@@ -57,8 +60,14 @@ export function generateMetadata({ params }: PageParams) {
   };
 }
 
-export default function Notes({ params }: PageParams) {
-  let post = getNotesPosts().find((post) => post.slug === params.slug);
+export default async function Notes({
+  params,
+}: {
+  params: Promise<PageParams>;
+}) {
+  const { slug } = await params;
+
+  let post = getNotesPosts().find((post) => post.slug === slug);
 
   if (!post) {
     notFound();
@@ -83,7 +92,7 @@ export default function Notes({ params }: PageParams) {
             url: `${baseUrl}/notes/${post.slug}`,
             author: {
               '@type': 'Person',
-              name: 'My Portfolio',
+              name: 'Виталий Гурын',
             },
           }),
         }}

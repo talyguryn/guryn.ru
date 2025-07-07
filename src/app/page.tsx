@@ -23,7 +23,7 @@ const projectList: Array<{
   },
   {
     name: 'Stickerum',
-    url: 'https://t.me/stickerum_bot',
+    url: 'https://stickerum.ru',
     description: 'Сервис для создания листа стикеров для печати и нарезки',
   },
   {

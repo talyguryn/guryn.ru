@@ -1,5 +1,3 @@
-const host = process.env.HOST || 'http://localhost:3000';
-
-export const getHost = () => {
-  return host;
-};
+export function getHost(): string {
+  return process.env.HOST || 'https://guryn.ru';
+}

@@ -54,6 +54,11 @@ function getMDXData(dir: string) {
       // Filter out draft posts if isDraft is not true
       return !file.metadata.isDraft;
     })
+    .filter((file) => {
+      // Filter out posts with publishedAt in the future
+      let publishedAt = new Date(file.metadata.publishedAt);
+      return publishedAt <= new Date();
+    })
     .sort((a, b) => {
       // Sort by publishedAt date, newest first
       if (new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)) {
@@ -90,7 +95,7 @@ export function formatDate(date: string, includeRelative = false) {
     formattedDate = 'Today';
   }
 
-  let fullDate = targetDate.toLocaleString('en-us', {
+  let fullDate = targetDate.toLocaleString('ru-RU', {
     month: 'long',
     day: 'numeric',
     year: 'numeric',

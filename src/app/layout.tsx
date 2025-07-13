@@ -18,7 +18,7 @@ export default function RootLayout({
       <head>
         <YandexMetrika />
       </head>
-      <body className={`antialiased`}>
+      <body className={`antialiased pb-32`}>
         <div className="container mx-auto px-4">
           <Header />
           <main>{children}</main>

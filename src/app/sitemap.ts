@@ -1,15 +1,16 @@
-// import { getNotesPosts } from '@/app/notes/utils';
+import { getNotesPosts } from '@/app/notes/utils';
+import { getHost } from '@/utils/host';
 
-export const baseUrl = 'https://guryn.ru';
+export const baseUrl = getHost();
 
 export default async function sitemap() {
   const sitemapList = [];
 
-  // let notes = getNotesPosts().map((post) => ({
-  //   url: `${baseUrl}/notes/${post.slug}`,
-  //   lastModified: post.metadata.publishedAt,
-  // }));
-  // sitemapList.push(...notes);
+  let notes = getNotesPosts().map((post) => ({
+    url: `${baseUrl}/notes/${post.slug}`,
+    lastModified: post.metadata.publishedAt,
+  }));
+  sitemapList.push(...notes);
 
   let routes = ['/'].map((route) => ({
     url: `${baseUrl}${route}`,

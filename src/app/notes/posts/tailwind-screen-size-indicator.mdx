@@ -1,0 +1,25 @@
+---
+title: 'Индикатор размера экрана в Tailwind CSS'
+publishedAt: '2025-07-14'
+summary: 'Как добавить маркер ширины экрана для адаптивной верстки'
+---
+
+В своих проектах я часть пользуюсь Tailwind CSS. Чтобы отследить ширину экрана и убедиться, что адаптивная верстка работает правильно, я добавляю в шапку страницы следующий код:
+
+```html
+<div
+  class="fixed top-0 opacity-30 z-1000 p-1 w-full text-black text-sm text-center before:content-['sm_•_•_•_•'] md:before:content-['•_md_•_•_•'] lg:before:content-['•_•_lg_•_•'] xl:before:content-['•_•_•_xl_•'] 2xl:before:content-['•_•_•_•_2xl']"
+></div>
+```
+
+Этот код создает полупрозрачную панель вверху страницы, которая отображает текущую ширину экрана в названиях классов Tailwind CSS. Это позволяет быстро увидеть, на каком размере экрана вы находитесь, и проверить адаптивность верстки.
+
+## Пример использования
+
+<div className="mx-auto my-8 w-full h-[260px] rounded-lg border border-gray-300 shadow-lg bg-white overflow-hidden flex flex-col">
+  <div className="bg-gray-200 h-6 flex items-center justify-center px-4 relative">
+    <span className="text-xs text-gray-500">Индикатор размера экрана</span>
+  </div>
+<div className="opacity-30 z-1000 p-1 w-full text-black text-center text-sm before:content-['sm_•_•_•_•'] md:before:content-['•_md_•_•_•'] lg:before:content-['•_•_lg_•_•'] xl:before:content-['•_•_•_xl_•'] 2xl:before:content-['•_•_•_•_2xl']"></div>
+
+</div>

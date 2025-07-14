@@ -58,7 +58,7 @@ function Code({ children, ...props }) {
 
   let codeHTML = highlight(children);
   return (
-    <div className="bg-gray-800 text-white mb-4 p-2 px-4 rounded block relative text-wrap">
+    <div className="bg-gray-900 text-white mb-4 p-2 px-4 rounded block relative text-wrap">
       <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
 
       <div className="absolute top-0 right-0">

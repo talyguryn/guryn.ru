@@ -74,7 +74,7 @@ export default async function Notes({
   }
 
   return (
-    <section className='max-w-3xl mx-auto px-4 py-8'>
+    <section>
       <script
         type="application/ld+json"
         suppressHydrationWarning

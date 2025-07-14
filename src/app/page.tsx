@@ -5,7 +5,6 @@ import NotesBlock from './components/NotesBlock';
 export default async function Page() {
   return (
     <div>
-
       <NotesBlock />
       <ProjectsBlock />
     </div>

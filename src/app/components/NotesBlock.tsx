@@ -5,9 +5,9 @@ const NotesBlock: React.FC<{}> = ({}) => (
   <>
     {getNotesPosts().length > 0 && (
       <div className="mb-16">
-        <div className="font-bold text-3xl mb-4">Заметки</div>
+        <div className="font-bold text-3xl mb-6">Заметки</div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
           {getNotesPosts().map((post) => (
             <a
               className="block no-underline! hover:underline!"

@@ -99,7 +99,7 @@ const Projects: React.FC<{}> = ({}) => (
   <>
     <div className="font-bold text-3xl mb-4">Проекты</div>
 
-    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4">
+    <ul className="grid grid-cols-1 gap-x-6 gap-y-4">
       {projectList.map((project) => (
         <li
           key={project.name}

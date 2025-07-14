@@ -14,12 +14,38 @@ summary: 'Как добавить маркер ширины экрана для 
 
 Этот код создает полупрозрачную панель вверху страницы, которая отображает текущую ширину экрана в названиях классов Tailwind CSS. Это позволяет быстро увидеть, на каком размере экрана вы находитесь, и проверить адаптивность верстки.
 
+## Принцип работы
+
+Tailwind предлагает классы для различных размеров экранов, такие как sm, md, lg, xl и 2xl. В этом коде используется псевдоэлемент before, чтобы отобразить эти классы в виде точек, которые меняются в зависимости от ширины экрана.
+
+Контент псевдоэлемента обновляется автоматически, когда вы меняете размер окна браузера, потому что эти значения прописаны в классах.
+
+По умолчанию текст индикатора прописан для самого узкого размера экрана:
+
+```
+before:content-[ 'sm_•_•_•_•'];
+```
+
+А для более широких экранов значение переопределяется:
+
+```
+md:before:content-['•_md_•_•_•']
+```
+
+И так далее для lg, xl и 2xl. Это позволяет легко увидеть, на каком размере экрана вы находитесь, и какие классы Tailwind CSS будут применяться.
+
 ## Пример использования
 
-<div className="mx-auto my-8 w-full h-[260px] rounded-lg border border-gray-300 shadow-lg bg-white overflow-hidden flex flex-col">
+Вот так индикатор будет выглядеть на странице после подключения блока с кодом.
+
+<div className="mx-auto my-8 w-full min-h-48 rounded-lg border border-gray-300 shadow-lg bg-white overflow-hidden flex flex-col">
   <div className="bg-gray-200 h-6 flex items-center justify-center px-4 relative">
+    <div className="absolute left-2.5 flex space-x-2">
+      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+    </div>
     <span className="text-xs text-gray-500">Индикатор размера экрана</span>
   </div>
-<div className="opacity-30 z-1000 p-1 w-full text-black text-center text-sm before:content-['sm_•_•_•_•'] md:before:content-['•_md_•_•_•'] lg:before:content-['•_•_lg_•_•'] xl:before:content-['•_•_•_xl_•'] 2xl:before:content-['•_•_•_•_2xl']"></div>
-
+  <div className="opacity-30 z-1000 p-1 w-full text-black text-center text-sm before:content-['sm_•_•_•_•'] md:before:content-['•_md_•_•_•'] lg:before:content-['•_•_lg_•_•'] xl:before:content-['•_•_•_xl_•'] 2xl:before:content-['•_•_•_•_2xl']"></div>
 </div>

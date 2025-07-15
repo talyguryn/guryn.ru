@@ -21,7 +21,7 @@ export default function RootLayout({
       </head>
       <body className={`antialiased pb-32`}>
         <div className="container max-w-5xl mx-auto px-4 pt-10 md:pt-40">
-          <main className="grid grid-cols-1 md:grid-cols-3 gap-y-2 gap-x-4">
+          <main className="grid grid-cols-1 md:grid-cols-3 gap-y-2 gap-x-6">
             <div className="col-span-2 mb-4 md:min-h-48">
               <Header />
             </div>

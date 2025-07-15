@@ -106,15 +106,15 @@ const Projects: React.FC<{}> = ({}) => (
           className="flex flex-col md:flex-row md:items-start mb-2"
         >
           <a
-            className="flex flex-col md:flex-row md:items-start w-full"
+            className="flex flex-col md:flex-row md:items-start w-full not-underlined"
             href={project.url}
             target="_blank"
           >
-            <span className="font-semibold md:w-1/3 w-full underlined mb-1.5">
+            <span className="font-semibold md:w-1/3 w-full mb-1.5 underlined">
               {project.name}
             </span>
             {project.description && (
-              <span className="text-gray-500 md:w-2/3 w-full md:ml-4">
+              <span className="text-gray-500 md:w-2/3 w-full md:ml-4 ">
                 {project.description}
               </span>
             )}

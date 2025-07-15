@@ -29,9 +29,6 @@ body {
 a {
   cursor: pointer;
   text-decoration: none;
-}
-
-.underlined {
   text-decoration: underline;
   text-decoration-thickness: 0.01em;
   text-underline-offset: 0.4em;
@@ -40,6 +37,17 @@ a {
   &:hover {
     text-decoration-color: inherit;
   }
+}
+
+.not-underlined {
+  text-decoration: none;
+}
+
+.underlined {
+  text-decoration: underline;
+  text-decoration-thickness: 0.01em;
+  text-underline-offset: 0.4em;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
 }
 
 h1 {

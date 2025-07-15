@@ -3,7 +3,7 @@ import { getHost } from '@/utils/host';
 
 const Header: React.FC<{}> = ({}) => (
   <header>
-    <a className="flex items-center font-bold text-2xl" href="/">
+    <a className="flex items-center font-bold text-2xl not-underlined" href="/">
       <img
         src={`${getHost()}/ava.png`}
         alt="Logo"

@@ -6,7 +6,6 @@ type Metadata = {
   publishedAt: string;
   summary: string;
   image?: string;
-  isDraft?: string;
 };
 
 function parseFrontmatter(fileContent: string) {
@@ -51,10 +50,10 @@ function getMDXData(dir: string) {
 
   return loadedFiles
     .filter((file) => {
-      // Filter out draft posts if isDraft is not true
-      return !file.metadata.isDraft;
-    })
-    .filter((file) => {
+      if (!file.metadata.publishedAt) {
+        return false; // Skip files without publishedAt
+      }
+
       // Filter out posts with publishedAt in the future
       let publishedAt = new Date(file.metadata.publishedAt);
       return publishedAt <= new Date();

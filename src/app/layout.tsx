@@ -29,7 +29,7 @@ export default function RootLayout({
               <ul className="grid grid-cols-1 gap-x-6 gap-y-2 font-semibold text-lg">
                 <li>
                   <a
-                    className="text-blue-500 hover:text-blue-900"
+                    className="text-blue-500 hover:text-blue-900 not-underlined"
                     href="https://t.me/guryn"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -39,7 +39,7 @@ export default function RootLayout({
                 </li>
                 {/* <li>
                   <a
-                    className="text-gray-500 hover:text-gray-900"
+                    className="text-gray-500 hover:text-gray-900 not-underlined"
                     href="/projects"
                   >
                     Проекты
@@ -47,7 +47,7 @@ export default function RootLayout({
                 </li> */}
                 <li>
                   <a
-                    className="text-gray-500 hover:text-gray-900"
+                    className="text-gray-500 hover:text-gray-900 not-underlined"
                     href="/notes"
                   >
                     Заметки
@@ -55,7 +55,7 @@ export default function RootLayout({
                 </li>
                 <li>
                   <a
-                    className="text-gray-500 hover:text-gray-900"
+                    className="text-gray-500 hover:text-gray-900 not-underlined"
                     href="https://github.com/talyguryn"
                     target="_blank"
                   >
@@ -64,7 +64,7 @@ export default function RootLayout({
                 </li>
                 <li>
                   <a
-                    className="text-gray-500 hover:text-gray-900"
+                    className="text-gray-500 hover:text-gray-900 not-underlined"
                     href="https://boosty.to/talyguryn"
                     target="_blank"
                   >
@@ -73,7 +73,7 @@ export default function RootLayout({
                 </li>
                 <li>
                   <a
-                    className="text-gray-500 hover:text-gray-900"
+                    className="text-gray-500 hover:text-gray-900 not-underlined"
                     href="https://youtube.com/@talyguryn"
                     target="_blank"
                   >

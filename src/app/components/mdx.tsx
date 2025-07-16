@@ -60,18 +60,18 @@ function Code({ children, ...props }) {
   let codeHTML = highlight(children);
 
   return (
-    <div className="bg-gray-900 text-white mb-4 py-2 pb-3 rounded block relative overflow-hidden">
+    <div className="bg-blue-50 dark:bg-gray-900 dark:text-white mb-4 py-2 pb-3 rounded block relative overflow-hidden">
       <div className="overflow-x-scroll px-4">
         <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
       </div>
 
-      <div className="pointer-events-none absolute right-0 top-0 h-full w-4 bg-gradient-to-l from-gray-900 to-transparent"></div>
+      <div className="pointer-events-none absolute right-0 top-0 h-full w-4 bg-gradient-to-l from-blue-50 dark:from-gray-900 to-transparent"></div>
 
-      <div className="pointer-events-none absolute left-0 top-0 h-full w-4 bg-gradient-to-l from-transparent to-gray-900"></div>
+      <div className="pointer-events-none absolute left-0 top-0 h-full w-4 bg-gradient-to-l from-transparent to-blue-50 dark:to-gray-900"></div>
 
       <div className="absolute top-0 right-0">
         <CopyButton textToCopy={children}>
-          <div className="text-gray-400 p-2 px-4 hover:text-gray-100 h-[2.4em] flex items-center  hover:backdrop-blur-sm rounded-bl">
+          <div className="text-gray-400 p-2 px-4 hover:text-gray-600 hover:dark:text-gray-100 h-[2.4em] flex items-center hover:backdrop-blur-sm rounded-bl">
             <Copy size={16} />
           </div>
         </CopyButton>

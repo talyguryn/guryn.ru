@@ -99,9 +99,9 @@ const Projects: React.FC<{}> = ({}) => (
   <>
     <div className="font-bold text-3xl mb-4">Проекты</div>
 
-    <ul className="grid grid-cols-1 gap-x-6 gap-y-4">
+    <div className="grid grid-cols-1 gap-x-6 gap-y-4">
       {projectList.map((project) => (
-        <li
+        <div
           key={project.name}
           className="flex flex-col md:flex-row md:items-start mb-2"
         >
@@ -119,9 +119,9 @@ const Projects: React.FC<{}> = ({}) => (
               </span>
             )}
           </a>
-        </li>
+        </div>
       ))}
-    </ul>
+    </div>
   </>
 );
 

@@ -52,7 +52,7 @@ function RoundedImage(props) {
   return <Image alt={props.alt} className="rounded-lg" {...props} />;
 }
 
-function Code({ children, ...props }) {
+function CodeBlock({ children, ...props }) {
   if (typeof children === 'string') {
     children = children.replace(/\n$/, '');
   }
@@ -62,21 +62,38 @@ function Code({ children, ...props }) {
   return (
     <div className="bg-blue-50 dark:bg-gray-900 dark:text-white mb-4 py-2 pb-3 rounded block relative overflow-hidden">
       <div className="overflow-x-scroll px-4">
-        <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
+        <pre
+          dangerouslySetInnerHTML={{ __html: codeHTML }}
+          {...props}
+          className="pr-10"
+        />
       </div>
 
       <div className="pointer-events-none absolute right-0 top-0 h-full w-4 bg-gradient-to-l from-blue-50 dark:from-gray-900 to-transparent"></div>
 
       <div className="pointer-events-none absolute left-0 top-0 h-full w-4 bg-gradient-to-l from-transparent to-blue-50 dark:to-gray-900"></div>
 
-      <div className="absolute top-0 right-0">
+      <div className="absolute top-0 right-0 bottom-0">
         <CopyButton textToCopy={children}>
-          <div className="text-gray-400 p-2 px-4 hover:text-gray-600 hover:dark:text-gray-100 h-[2.4em] flex items-center hover:backdrop-blur-sm rounded-bl">
+          <div className="text-gray-400 p-2 px-4 hover:text-gray-600 hover:dark:text-gray-100 h-[2.6em] flex items-center hover:backdrop-blur-sm rounded-bl">
             <Copy size={16} />
           </div>
         </CopyButton>
       </div>
     </div>
+  );
+}
+
+function inlineCode({ children, ...props }) {
+  return (
+    <CopyButton textToCopy={children}>
+      <code
+        className="bg-blue-50 dark:bg-gray-900 rounded p-1 pt-0.5 text-sm font-mono"
+        {...props}
+      >
+        {children}
+      </code>
+    </CopyButton>
   );
 }
 
@@ -122,7 +139,13 @@ let components = {
   h6: createHeading(6),
   Image: RoundedImage,
   a: CustomLink,
-  code: Code,
+  code: inlineCode,
+  pre: (props) => {
+    if (props.children && props.children.props) {
+      return <CodeBlock {...props}>{props.children.props.children}</CodeBlock>;
+    }
+    return <pre {...props} />;
+  },
   Table,
   BrowserMockup,
 };

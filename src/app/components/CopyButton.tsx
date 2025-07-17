@@ -23,7 +23,11 @@ export default function CopyButton({
   };
 
   return (
-    <button onClick={handleCopy} className="cursor-pointer" title="Скопировать">
+    <button
+      onClick={handleCopy}
+      className="cursor-pointer text-left"
+      title="Скопировать"
+    >
       {children}
     </button>
   );

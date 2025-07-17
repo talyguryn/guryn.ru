@@ -1,0 +1,69 @@
+---
+title: 'Автообновление запущенных контейнеров с помощью Watchtower'
+summary: 'Продвинутый способ поддерживать ваши сервисы в актуальном состоянии'
+publishedAt: '2025-07-17'
+---
+
+Большинство своих сервисов я запускаю в Docker-контейнерах. Это позволяет легко управлять зависимостями и изолировать приложения друг от друга. Недавно я начал использовать GitHub Actions для автоматической сборки и публикации Docker-образов. Но вопрос обновления запущенных контейнеров оставался открытым до тех пор, пока я не узнал о [Watchtower](https://containrrr.dev/watchtower/).
+
+## Что такое Watchtower
+
+С английского название дословно переводится как «Сторожевая башня». Это инструмент, который следит за вашими запущенными Docker-контейнерами и автоматически обновляет их, когда появляются новые версии образов.
+
+Он запускается как отдельный контейнер, просит доступ к Docker API на вашей системе и периодически проверяет наличие обновлений для других контейнеров.
+
+## Установка Watchtower
+
+Чтобы установить Watchtower, достаточно запустить его в Docker. Я предпочитаю использовать docker-compose файлы для управления своими сервисами. Вот пример конфигурации для Watchtower:
+
+```yaml
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    logging:
+      driver: local
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - --cleanup
+      - --label-enable
+      - --tlsverify
+      - --enable-lifecycle-hooks
+      - --interval
+      - '10'
+```
+
+Этот файл описывает сервис Watchtower, который будет следить за запущенными контейнерами с определенной биркой и проверять обновления каждые 10 секунд.
+
+## Запуск Watchtower
+
+После создания файла `docker-compose.yml` с описанием Watchtower, запустите его командой:
+
+```bash
+docker-compose up -d
+```
+
+## Включаем наблюдение за контейнерами
+
+Добавьте бирку (label) контейнерам, за которыми нужно следить:
+
+```
+com.centurylinklabs.watchtower.enable=true
+```
+
+Например:
+
+```yaml
+services:
+  web:
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    image: nginx:latest
+    restart: unless-stopped
+    ports:
+      - '80:80'
+```
+
+Теперь, когда для контейнера `nginx:latest` появится новая версия, Watchtower автоматически перезапустит этот контейнер с обновленным образом.

@@ -148,8 +148,6 @@ services:
       - traefik.http.routers.whoami-example-com.tls.certresolver=letsencrypt
     image: containous/whoami
     restart: unless-stopped
-    networks:
-      - traefik
     deploy:
       replicas: 3
 ```

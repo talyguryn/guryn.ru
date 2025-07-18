@@ -16,7 +16,7 @@ export async function GET(request: Request) {
           />
           {/* <span tw="text-[24px] tracking-tight text-left">Виталий Гурын</span> */}
         </span>
-        <span tw="flex flex-col text-[84px] w-4/5 tracking-tight leading-1.2 text-left">
+        <span tw="flex flex-col text-[84px] tracking-tight leading-1.2 text-left">
           {title}
         </span>
       </div>

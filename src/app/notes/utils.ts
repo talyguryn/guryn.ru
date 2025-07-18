@@ -1,11 +1,17 @@
 import fs from 'fs';
 import path from 'path';
 
-type Metadata = {
+export interface NotePost {
+  slug: string;
+  metadata: NoteMetadata;
+}
+
+export type NoteMetadata = {
   title: string;
   publishedAt: string;
   summary: string;
   image?: string;
+  tags?: string[];
 };
 
 function parseFrontmatter(fileContent: string) {
@@ -14,16 +20,24 @@ function parseFrontmatter(fileContent: string) {
   let frontMatterBlock = match![1];
   let content = fileContent.replace(frontmatterRegex, '').trim();
   let frontMatterLines = frontMatterBlock.trim().split('\n');
-  let metadata: Partial<Metadata> = {};
+  let metadata: Partial<NoteMetadata> = {};
 
   frontMatterLines.forEach((line) => {
     let [key, ...valueArr] = line.split(': ');
     let value = valueArr.join(': ').trim();
+
     value = value.replace(/^['"](.*)['"]$/, '$1'); // Remove quotes
-    metadata[key.trim() as keyof Metadata] = value;
+    const trimmedKey = key.trim() as keyof NoteMetadata;
+    if (trimmedKey === 'tags') {
+      metadata[trimmedKey] = value
+        ? value.split(',').map((tag) => tag.trim())
+        : [];
+    } else {
+      metadata[trimmedKey] = value;
+    }
   });
 
-  return { metadata: metadata as Metadata, content };
+  return { metadata: metadata as NoteMetadata, content };
 }
 
 function getMDXFiles(dir: string) {
@@ -105,4 +119,35 @@ export function formatDate(date: string, includeRelative = false) {
   }
 
   return `${fullDate} (${formattedDate})`;
+}
+
+export function getTagsWithCount(): { tag: string; count: number }[] {
+  const allNotes = getNotesPosts();
+  const allTags = allNotes
+    .flatMap((post) => post.metadata.tags)
+    .filter((tag): tag is string => typeof tag === 'string' && !!tag)
+    .filter((tag, index, self) => self.indexOf(tag) === index)
+    .sort((a, b) => {
+      if (!a) return 1;
+      if (!b) return -1;
+      return a.localeCompare(b);
+    });
+
+  const tagCounts = allTags
+    .map((tag) => {
+      const count = allNotes.filter(
+        (post) =>
+          Array.isArray(post.metadata.tags) && post.metadata.tags.includes(tag)
+      ).length;
+
+      return { tag, count };
+    })
+    .sort((a, b) => {
+      if (b.count !== a.count) {
+        return b.count - a.count;
+      }
+      return a.tag.localeCompare(b.tag);
+    });
+
+  return tagCounts;
 }

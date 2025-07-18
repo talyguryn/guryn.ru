@@ -7,6 +7,7 @@ import React from 'react';
 import CopyButton from './CopyButton';
 import { Copy } from 'lucide-react';
 import BrowserMockup from './BrowserMockup';
+import { FilesStructure } from './FilesStructure';
 
 function Table({ data }) {
   let headers = data.headers.map((header, index) => (
@@ -65,7 +66,7 @@ function CodeBlock({ children, ...props }) {
         <pre
           dangerouslySetInnerHTML={{ __html: codeHTML }}
           {...props}
-          className="pr-10"
+          className="inline-block min-w-max"
         />
       </div>
 
@@ -148,6 +149,7 @@ let components = {
   },
   Table,
   BrowserMockup,
+  FilesStructure,
 };
 
 export function CustomMDX(props) {

@@ -1,0 +1,167 @@
+---
+title: 'Traefik для личного сервера'
+summary: 'Как я перешел с nginx на Traefik для управления сервисами, доменами и сертификатами'
+publishedAt: '2025-07-18'
+tags: traefik, docker, devops
+---
+
+Раньше на каждом своем сервере я использовал nginx для управления запросами к внутренним сервисам и выпускал SSL-сертификаты для доментов через [certbot](https://certbot.eff.org/). А недавно перешел на [Traefik](https://traefik.io/), который позволяет управлять доменами и сертификатами прямо в docker-compose файлах.
+
+Traefik — это сервер, как nginx, который настраивает маршрутизацию запросов к вашим сервисам и управляет SSL-сертификатами. Он поддерживает динамическую конфигурацию и интеграцию с Docker, что удобно, если вы используете контейнеры.
+
+У него подробная [документация](https://doc.traefik.io/traefik/v2.4/getting-started/quick-start/) и много примеров для запуска и изучения с нуля. Я расскажу о своем опыте и настройках.
+
+## Настройка контейнера Traefik
+
+Сервисы на сервере я убираю в отдельные папки, чтобы не путаться в конфигурациях. Например, у меня есть папка `traefik`, в которой лежит файл `traefik.yml` с настройками и `docker-compose.yml`.
+
+<FilesStructure
+  structure={{
+    name: 'traefik',
+    subitems: [
+      { name: 'traefik.yml' },
+      { name: 'docker-compose.yml' },
+      {
+        name: 'data',
+        opacity: 50,
+        collapsed: true,
+        subitems: [{ name: 'letsencrypt', subitems: [{ name: 'acme.json' }] }],
+      },
+    ],
+  }}
+/>
+
+Папка `data` создается автоматически и используется для хранения сертификатов Let's Encrypt, которые Traefik будет выпускать и обновлять.
+
+Файл `docker-compose.yml` с конфигурацией контейнера Traefik:
+
+```yaml
+services:
+  traefik:
+    image: traefik:2.4.8
+    restart: unless-stopped
+    labels:
+      # HTTP -> HTTPS redirection
+      - traefik.http.routers.to-https.rule=HostRegexp(`{host:.+}`)
+      - traefik.http.routers.to-https.entrypoints=http
+      - traefik.http.routers.to-https.middlewares=to-https
+      - traefik.http.middlewares.to-https.redirectscheme.scheme=https
+
+      # Basic Auth middleware for securing dashboard
+      - traefik.http.middlewares.auth.basicauth.users=admin:$2y$05$m3Bi4.nh8RfUw/aCNBBI4eNq6wzOP5OOTf3QZdnSVK7Xu0q6VCC8u
+
+      # Traefik dashboard with HTTPS and basic auth
+      - traefik.http.routers.traefik.rule=Host(`traefik.example.com`)
+      - traefik.http.routers.traefik.entrypoints=https
+      - traefik.http.routers.traefik.middlewares=auth
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.tls=true
+      - traefik.http.routers.traefik.tls.certresolver=letsencrypt
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml
+      - ./data/letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
+```
+
+В нем я запускаю контейнер с Traefik, указываю ему слушать порты 80 и 443 сервера, настраиваю форсированное использование HTTPS, защищаю панель управления Traefik базовой аутентификацией и подключаю внешние файлы и папки.
+
+Панель управления Traefik будет доступна по указанному адресу `https://traefik.example.com`. Let's Encrypt автоматически выпустит SSL сертификат. А панель будет защищена простой авторизацией с логином `admin` и зашифрованным паролем. Об этом расскажу ниже.
+
+Также я подключаю файл `traefik.yml` с настройками и указываю папку для хранения сертификатов Let's Encrypt.
+
+Файл `traefik.yml`:
+
+```yaml
+#log:
+#  level: DEBUG
+
+api:
+  dashboard: true
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      httpchallenge:
+        entrypoint: http
+      email: admin@example.com
+      storage: /letsencrypt/acme.json
+```
+
+### Создания пароля для базовой аутентификации
+
+Чтобы создать пароль для базовой аутентификации, можно использовать команду `htpasswd` из пакета `apache2-utils` или использовать онлайн-генератор паролей bcrypt.
+
+```bash
+htpasswd -nB admin
+```
+
+Система дважды запросит пароль и вернет строку в формате `username:hashed_password`, которую нужно вставить в нужную метку в docker-compose файле.
+
+```
+admin:$2y$05$m3Bi4.nh8RfUw/aCNBBI4eNq6wzOP5OOTf3QZdnSVK7Xu0q6VCC8u
+```
+
+## Запуск и использование
+
+После настройки файлов остается запустить Traefik командой:
+
+```bash
+docker compose up -d
+```
+
+Traefik запустится в фоновом режиме, и вы сможете получить доступ к панели управления по адресу, который вы указали вместо `https://traefik.example.com`.
+
+## Добавление сервисов
+
+Чтобы подключить другой контейнер к Traefik, нужно добавить в его `docker-compose.yml` соответствующие метки.
+
+Например, запустим nginx на домене `nginx.example.com` с подключенным SSL-сертификатом. Важно правильно указать домен и используемый порт сервиса.
+
+```yaml
+services:
+  nginx-example-com:
+    labels:
+      - traefik.http.routers.nginx-example-com.rule=Host(`nginx.example.com`)
+      - traefik.http.routers.nginx-example-com.entrypoints=https
+      - traefik.http.routers.nginx-example-com.service=nginx-example-com
+      - traefik.http.services.nginx-example-com.loadbalancer.server.port=80
+      - traefik.http.routers.nginx-example-com.tls=true
+      - traefik.http.routers.nginx-example-com.tls.certresolver=letsencrypt
+    image: nginx:latest
+    restart: unless-stopped
+```
+
+Или запустим 3 реплики сервиса `whoami` на домене `whoami.example.com`, который будет отвечать на запросы и показывать информацию о запросе.
+
+```yaml
+services:
+  whoami-example-com:
+    labels:
+      - traefik.http.routers.whoami-example-com.rule=Host(`whoami.example.com`)
+      - traefik.http.routers.whoami-example-com.entrypoints=https
+      - traefik.http.routers.whoami-example-com.service=whoami-example-com
+      - traefik.http.services.whoami-example-com.loadbalancer.server.port=80
+      - traefik.http.routers.whoami-example-com.tls=true
+      - traefik.http.routers.whoami-example-com.tls.certresolver=letsencrypt
+    image: containous/whoami
+    restart: unless-stopped
+    networks:
+      - traefik
+    deploy:
+      replicas: 3
+```
+
+Docker запустит 3 реплики сервиса `whoami`, а Traefik будет автоматически распределять запросы к домену `whoami.example.com` между ними.
+
+## Опыт использования и выводы
+
+Traefik значительно упростил управление сервисами и сертификатами на моих серверах. Теперь не нужно настраивать nginx и выпускать сертификаты через certbot для каждого нового домена. Достаточно добавить нужные метки в конфигурацию контейнера.
+
+Мне нравится, что настройки Traefik можно хранить рядом с настройками самих сервисов в docker-compose файлах.
+
+Этот базовый функционал закрывает большинство моих потребностей. Панель администратора я использую только для проверки сертификатов сразу после добавления нового домена.
+
+При необходимости логи Traefik можно почитать в самом контейнере.

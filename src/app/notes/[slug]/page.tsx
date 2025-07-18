@@ -3,6 +3,7 @@ import { CustomMDX } from '@/app/components/mdx';
 import { formatDate, getNotesPosts } from '@/app/notes/utils';
 import { baseUrl } from '@/app/sitemap';
 import { BlogPosting, WithContext } from 'schema-dts';
+import Tag from '@/app/components/Tag';
 
 type PageParams = {
   slug: string;
@@ -72,7 +73,7 @@ export default async function Notes({
   let post = posts.find((post) => post.slug === slug);
 
   if (!post) {
-    notFound();
+    return notFound();
   }
 
   const readMorePosts = [];
@@ -126,8 +127,8 @@ export default async function Notes({
 
       <div className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 mt-8 flex flex-col">
         <span>
-          Подпишитесь на мой Бусти, чтобы комментировать и получать уведомления
-          о новых заметках.
+          Подпишитесь на мой Бусти, чтобы комментировать записи
+          и получать уведомления о новых заметках.
         </span>
         <a
           className="not-underlined p-4 pb-4.5 mt-4 text-center bg-[#f15f2c] hover:bg-[#d45124] text-white rounded-lg"
@@ -139,10 +140,24 @@ export default async function Notes({
         </a>
       </div>
 
+      {/* show list of tags */}
+      {post.metadata.tags && post.metadata.tags.length > 0 && (
+        <div className="mt-4">
+          <div className="text-lg font-semibold mb-2">
+            Показать заметки по похожей теме
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {post.metadata.tags.map((tag) => (
+              <Tag key={tag} tag={tag} />
+            ))}
+          </div>
+        </div>
+      )}
+
       <div>
         {readMorePosts.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">Читать еще</h2>
+            <div className="text-xl font-semibold mb-4">Читать еще</div>
             <div className="flex flex-col gap-3">
               {readMorePosts.map((post) => (
                 <div key={post.slug}>

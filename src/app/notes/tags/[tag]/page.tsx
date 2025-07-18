@@ -1,7 +1,26 @@
 import NoteCard from '@/app/components/NoteCard';
 import { notFound } from 'next/navigation';
-import { formatDate, getNotesPosts } from '@/app/notes/utils';
+import { getNotesPosts, getTagsWithCount } from '@/app/notes/utils';
 import type { NotePost } from '@/app/notes/utils';
+
+export async function generateStaticParams() {
+  const tags = getTagsWithCount();
+  return tags.map(({ tag }) => ({
+    tag,
+  }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ tag: string }>;
+}) {
+  const { tag } = await params;
+  return {
+    title: `Заметки на тему «${tag}»`,
+    description: ``,
+  };
+}
 
 export default async function NotesTagPage({
   params,

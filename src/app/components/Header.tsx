@@ -6,7 +6,7 @@ const Header: React.FC<{}> = ({}) => (
     <a className="flex items-center font-bold text-2xl not-underlined" href="/">
       <img
         src={`${getHost()}/ava.png`}
-        alt="Logo"
+        alt=""
         className="w-10 h-10 mr-3 inline-block rounded-full object-cover"
       />
       Виталий Гурын

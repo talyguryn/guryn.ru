@@ -5,14 +5,14 @@ import { Folder, FolderOpen, File } from 'lucide-react';
 
 type FilesStructureItem = {
   name: string;
-  opacity?: number;
+  opacitied?: boolean;
   collapsed?: boolean;
   subitems?: FilesStructureItem[];
 };
 
 function TreeItem({ item }: { item: FilesStructureItem }) {
   const isFolder = item.subitems && item.subitems.length > 0;
-  const opacityStyle = item.opacity ? `opacity-${item.opacity}` : '';
+  const opacityStyle = item.opacitied ? `opacity-50` : '';
   const [open, setOpen] = useState<boolean>(item.collapsed ? false : true);
 
   console.log('opacityStyle', opacityStyle);

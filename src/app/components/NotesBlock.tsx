@@ -1,5 +1,7 @@
 import React from 'react';
 import { getNotesPosts } from '@/app/notes/utils';
+import NoteCard from './NoteCard';
+import { pluralize } from '@/utils/texts';
 
 const NotesBlock: React.FC<{}> = ({}) => (
   <>
@@ -7,22 +9,26 @@ const NotesBlock: React.FC<{}> = ({}) => (
       <div className="mb-16">
         <div className="font-bold text-3xl mb-6">Заметки</div>
 
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-          {getNotesPosts().map((post) => (
-            <a
-              className="block no-underline! hover:underline!"
-              href={`/notes/${post.slug}`}
-              key={post.slug}
-            >
-              <div>
-                <div className="font-bold text-xl mb-1.5">
-                  {post.metadata.title}
-                </div>
-                <div>{post.metadata.summary}</div>
-              </div>
-            </a>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-2">
+          {getNotesPosts()
+            .slice(0, 3)
+            .map((post) => (
+              <NoteCard key={post.slug} post={post} />
+            ))}
         </div>
+
+        {getNotesPosts().length > 3 && (
+          <div className="mt-2">
+            <a href="/notes" className="underlined">
+              Показать все {getNotesPosts().length}{' '}
+              {pluralize(getNotesPosts().length, [
+                'заметка',
+                'заметки',
+                'заметок',
+              ])}
+            </a>
+          </div>
+        )}
       </div>
     )}
   </>

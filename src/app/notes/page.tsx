@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { formatDate, getNotesPosts, getTagsWithCount } from '@/app/notes/utils';
 import Tag from '../components/Tag';
+import NoteCard from '../components/NoteCard';
 
 export default async function Page() {
   const allNotes = getNotesPosts().sort((a, b) => {
@@ -18,20 +19,9 @@ export default async function Page() {
 
       <div>
         {allNotes.map((post) => (
-          <Link
-            key={post.slug}
-            className="flex flex-col space-y-1 mb-4"
-            href={`/notes/${post.slug}`}
-          >
-            <div className="w-full flex flex-col md:flex-row space-x-0 md:space-x-2">
-              <p className="text-neutral-600 dark:text-neutral-400 w-[150px] tabular-nums">
-                {formatDate(post.metadata.publishedAt, false)}
-              </p>
-              <p className="text-neutral-900 dark:text-neutral-100 tracking-tight">
-                {post.metadata.title}
-              </p>
-            </div>
-          </Link>
+          <div key={post.slug} className="mb-2">
+            <NoteCard post={post} />
+          </div>
         ))}
       </div>
 

@@ -125,6 +125,20 @@ export default async function Notes({
         <CustomMDX source={post.content} />
       </article>
 
+      {/* show list of tags */}
+      {post.metadata.tags && post.metadata.tags.length > 0 && (
+        <div className="mt-4">
+          <div className="text-lg font-semibold mb-2">
+            Показать заметки по похожей теме
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {post.metadata.tags.map((tag) => (
+              <Tag key={tag} tag={tag} />
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 mt-8 flex flex-col">
         <span>
           Подпишитесь на мой Бусти, чтобы комментировать записи
@@ -139,20 +153,6 @@ export default async function Notes({
           Подписаться на Бусти
         </a>
       </div>
-
-      {/* show list of tags */}
-      {post.metadata.tags && post.metadata.tags.length > 0 && (
-        <div className="mt-4">
-          <div className="text-lg font-semibold mb-2">
-            Показать заметки по похожей теме
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {post.metadata.tags.map((tag) => (
-              <Tag key={tag} tag={tag} />
-            ))}
-          </div>
-        </div>
-      )}
 
       <div>
         {readMorePosts.length > 0 && (

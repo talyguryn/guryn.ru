@@ -1,0 +1,166 @@
+---
+title: 'Когда полезен SSH туннель'
+summary: 'И как настроить его автозапуск на сервере'
+publishedAt: '2025-07-20'
+tags: ssh, devops
+---
+
+Чаще всего я использую SSH туннель для подключения к домашнему серверу без выделенного ip-адреса через интернет. Через такой же туннель я перенаправяю на него запросы с определенных доменов. И по той же методике я иногда расшариваю доступ через домен к порту на ноутбуке во время разработки.
+
+Если коротко, то у меня есть удаленный сервер (например, VPS) с SSH и я подключаюсь к нему с домашнего сервера и ноутбука и оставляю соединение открытым. А на удаленном сервере я перенаправляю запросы с домена на нужный порт.
+
+## Как работает SSH туннель
+
+SSH туннель — это подключение одного комьютера к другому через SSH, которое позволяет перенаправлять трафик с одного порта на другой.
+
+Например, SSH на домашнем сервере `192.168.0.1:22` может быть доступен через туннель на удаленном сервере по адресу `44.55.66.44:10022`, если первый подключится ко второму.
+
+Для этого используется команда, которую можно запустить в терминале:
+
+```bash
+ssh -NT -R 0.0.0.0:10022:localhost:22 -p 22 root@44.55.66.44
+```
+
+Или такое же подключение, но без проверки отпечатков ключей. Актуально, если вы часто переустанавливаете систему и не хотите каждый раз очищать ключи в файле `known_hosts`:
+
+```bash
+ssh -NT -o ServerAliveInterval=60 -o ExitOnForwardFailure=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -R 0.0.0.0:10022:localhost:22 -p 22 root@44.55.66.44
+```
+
+Эти команды создают туннель, который перенаправляет все запросы к порту `10022` удаленного сервера на порт `22` домашнего сервера. То есть, когда вы подключаетесь к `ssh -p 10022 root@44.55.66.44`, вы фактически подключаетесь к `192.168.0.1:22`.
+
+В случае с расшариваем локального порта на ноутбуке во время разработки, я запускаю команду действительно в терминале. А для постоянного SSH туннеля на домашнем сервере я использую сервис, который автоматически запускается при загрузке системы и поддерживает соединение.
+
+## Создание системного сервиса
+
+Создаем файл `/etc/systemd/system/ssh-tunnel.service` с содержимым.
+
+```ini
+[Unit]
+Description=SSH Tunnel
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/bin/ssh -NT -o ServerAliveInterval=60 -o ExitOnForwardFailure=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -R 0.0.0.0:10022:localhost:22 -p 22 root@44.55.66.44
+RestartSec=5
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Порт `10022` и IP-адрес `44.55.66.44` замените на ваши от VPS. Порт `22` — это порт на домашнем сервере, который вы хотите расшарить.
+
+Загрузите сервис в systemd и запустите его:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl start ssh-tunnel
+```
+
+И добавьте его в автозагрузку:
+
+```bash
+sudo systemctl enable ssh-tunnel
+```
+
+## Подключение к туннелю
+
+Теперь вы можете подключаться к вашему домашнему серверу через туннель, используя команду:
+
+```bash
+ssh -J root@44.55.66.44 -p 10022 root@localhost
+```
+
+### Почему не просто `ssh -p 10022 root@44.55.66.44`?
+
+Потому что в конфигах подключения к удаленному серверу в указании хоста для порта я указывал `localhost`. А это значит, что порты не будут доступны снаружи. Поэтому нужно использовать `-J` (или `ProxyJump`), чтобы указать, что нужно сначала подключиться к удаленному серверу, а потом уже к домашнему.
+
+Но если вы хотите, чтобы туннель был доступен напрямую, то в сервисе нужно обновить строку и заменить `localhost` на `0.0.0.0`:
+
+```bash
+ssh -NT -R 0.0.0.0:10022:0.0.0.0:22 -p 22 root@44.55.66.44
+```
+
+## Ansible файлы для настройки туннеля
+
+<FilesStructure
+  structure={{
+    name: 'ssh-tunnel',
+    subitems: [
+      {
+        name: 'tasks',
+        subitems: [{ name: 'main.yml' }],
+      },
+      {
+        name: 'templates',
+        subitems: [{ name: 'ssh-tunnel.service.j2' }],
+      },
+    ],
+  }}
+/>
+
+`main.yml` — файл с задачами Ansible для настройки SSH туннеля. Он создает системный сервис, который будет автоматически запускаться при загрузке системы.
+
+```yaml
+- name: Create SSH "{{ tunnel_name }}" systemd service using template
+  template:
+    src: ssh-tunnel.service.j2
+    dest: /etc/systemd/system/{{ tunnel_name }}.service
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Ensure SSH "{{ tunnel_name }}" systemd service is started and enabled
+  systemd:
+    name: '{{ tunnel_name }}'
+    state: started
+    enabled: yes
+```
+
+`ssh-tunnel.service.j2` — шаблон для создания системного сервиса, который будет поддерживать SSH туннель.
+
+```ini
+[Unit]
+Description=SSH {{ tunnel_name }} to target server
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/bin/ssh -NT -o ServerAliveInterval=60 -o ExitOnForwardFailure=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -R 0.0.0.0:{{ remote_port }}:localhost:{{ host_port }} -p {{ vps_port }} root@{{ vps_ip }}
+RestartSec=5
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Теперь, чтобы настроить SSH туннель, достаточно указать роль с переменными в Ansible. Например, туннели для SSH и HTTP запросов:
+
+```yaml
+- name: Configure SSH Tunnel
+  import_role:
+    name: ssh-tunnel
+  vars:
+    tunnel_name: ssh-tunnel
+    host_port: 22
+    remote_port: 10022
+    # vps_ip: 44.55.66.44
+    # vps_port: 22
+
+- name: Configure Web Tunnel
+  import_role:
+    name: ssh-tunnel
+  vars:
+    tunnel_name: web-tunnel
+    host_port: 80
+    remote_port: 10080
+    # vps_ip: 44.55.66.44
+    # vps_port: 22
+```
+
+У меня параметры `vps_ip` и `vps_port` прописаны в общих переменных инвентаря, чтобы не дублировать их в каждом плейбуке.
+
+И останется только убедиться, что на сервере есть публичный ключ от машины, которая будет устанавливать туннель.

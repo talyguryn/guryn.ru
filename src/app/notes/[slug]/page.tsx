@@ -125,7 +125,6 @@ export default async function Notes({
         <CustomMDX source={post.content} />
       </article>
 
-      {/* show list of tags */}
       {post.metadata.tags && post.metadata.tags.length > 0 && (
         <div className="mt-4">
           <div className="text-lg font-semibold mb-2">

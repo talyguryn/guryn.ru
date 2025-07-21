@@ -1,7 +1,7 @@
 import Image from 'next/image';
 
 export type ChatProps = {
-  chatTitle: string;
+  chatTitle?: string;
   messages: {
     role: 'user' | 'assistant';
     user?: {
@@ -38,9 +38,13 @@ export default function ChatMockup({
 }: ChatProps) {
   return (
     <div className="max-w-2xl mx-auto my-4 bg-gray-100 dark:bg-gray-900 p-4 rounded-sm">
-      <div className="font-semibold mb-4 text-center text-gray-800 dark:text-gray-100">
-        {chatTitle}
-      </div>
+      {/* Chat title if exists */}
+      {chatTitle && (
+        <div className="font-semibold mb-4 text-center text-gray-800 dark:text-gray-100">
+          {chatTitle}
+        </div>
+      )}
+      {/* Chat messages */}
       <div className="space-y-4">
         {messages.map((msg, idx) => {
           const isUser = msg.role === 'user';
@@ -142,7 +146,7 @@ export default function ChatMockup({
                 </div>
 
                 {msg.message.cover && (
-                  <div className="mt-2">
+                  <div className="mt-2 border rounded-sm border-gray-200">
                     <Image
                       src={msg.message.cover}
                       alt="Cover"

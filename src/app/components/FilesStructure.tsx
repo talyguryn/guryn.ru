@@ -15,8 +15,6 @@ function TreeItem({ item }: { item: FilesStructureItem }) {
   const opacityStyle = item.opacitied ? `opacity-50` : '';
   const [open, setOpen] = useState<boolean>(item.collapsed ? false : true);
 
-  console.log('opacityStyle', opacityStyle);
-
   return (
     <li className={`${opacityStyle}`}>
       <div

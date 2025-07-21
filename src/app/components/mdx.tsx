@@ -8,6 +8,7 @@ import CopyButton from './CopyButton';
 import { Copy } from 'lucide-react';
 import BrowserMockup from './BrowserMockup';
 import { FilesStructure } from './FilesStructure';
+import ChatMockup from './ChatMockup';
 
 function Table({ data }) {
   let headers = data.headers.map((header, index) => (
@@ -150,6 +151,7 @@ let components = {
   Table,
   BrowserMockup,
   FilesStructure,
+  ChatMockup,
 };
 
 export function CustomMDX(props) {

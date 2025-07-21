@@ -147,11 +147,11 @@ export default function ChatMockup({
 
                 {msg.message.cover && (
                   <div className="mt-2 border rounded-sm border-gray-200">
-                    <Image
+                    <img
                       src={msg.message.cover}
                       alt="Cover"
                       width={300}
-                      height={200}
+                      height={169}
                       className="rounded-lg"
                     />
                   </div>

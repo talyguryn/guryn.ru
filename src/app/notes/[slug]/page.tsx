@@ -3,7 +3,7 @@ import { CustomMDX } from '@/app/components/mdx';
 import { formatDate, getNotesPosts } from '@/app/notes/utils';
 import { baseUrl } from '@/app/sitemap';
 import { BlogPosting, WithContext } from 'schema-dts';
-import Tag from '@/app/components/Tag';
+import Tag, { colorType } from '@/app/components/Tag';
 
 type PageParams = {
   slug: string;

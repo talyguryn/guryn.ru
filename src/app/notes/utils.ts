@@ -12,6 +12,7 @@ export type NoteMetadata = {
   summary: string;
   image?: string;
   tags?: string[];
+  projects?: string[];
 };
 
 function parseFrontmatter(fileContent: string) {
@@ -28,9 +29,9 @@ function parseFrontmatter(fileContent: string) {
 
     value = value.replace(/^['"](.*)['"]$/, '$1'); // Remove quotes
     const trimmedKey = key.trim() as keyof NoteMetadata;
-    if (trimmedKey === 'tags') {
+    if (trimmedKey === 'tags' || trimmedKey === 'projects') {
       metadata[trimmedKey] = value
-        ? value.split(',').map((tag) => tag.trim())
+        ? value.split(',').map((item) => item.trim())
         : [];
     } else {
       metadata[trimmedKey] = value;
@@ -64,20 +65,16 @@ function getMDXData(dir: string) {
 
   return loadedFiles
     .filter((file) => {
-      if (!file.metadata.publishedAt) {
-        return false; // Skip files without publishedAt
-      }
+      if (!file.metadata.publishedAt) return false;
 
-      // Filter out posts with publishedAt in the future
       let publishedAt = new Date(file.metadata.publishedAt);
       return publishedAt <= new Date();
     })
     .sort((a, b) => {
-      // Sort by publishedAt date, newest first
       if (new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)) {
         return -1;
       }
-      return 1; // If dates are equal, maintain original order
+      return 1;
     });
 }
 
@@ -150,4 +147,38 @@ export function getTagsWithCount(): { tag: string; count: number }[] {
     });
 
   return tagCounts;
+}
+
+export function getProjectsWithCount(): { project: string; count: number }[] {
+  const allNotes = getNotesPosts();
+  const allProjects = allNotes
+    .flatMap((post) => post.metadata.projects)
+    .filter(
+      (project): project is string => typeof project === 'string' && !!project
+    )
+    .filter((project, index, self) => self.indexOf(project) === index)
+    .sort((a, b) => {
+      if (!a) return 1;
+      if (!b) return -1;
+      return a.localeCompare(b);
+    });
+
+  const projectCounts = allProjects
+    .map((project) => {
+      const count = allNotes.filter(
+        (post) =>
+          Array.isArray(post.metadata.projects) &&
+          post.metadata.projects.includes(project)
+      ).length;
+
+      return { project, count };
+    })
+    .sort((a, b) => {
+      if (b.count !== a.count) {
+        return b.count - a.count;
+      }
+      return a.project.localeCompare(b.project);
+    });
+
+  return projectCounts;
 }

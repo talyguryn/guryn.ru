@@ -79,7 +79,7 @@ h6 {
 }
 
 p {
-  margin: 0.5em 0;
+  margin: 1em 0;
   line-height: 1.6;
 }
 
@@ -148,7 +148,7 @@ li {
 }
 
 blockquote {
-  margin: 0.5em 0;
+  margin: 1em 0;
   padding-left: 1em;
   border-left: 0.05em solid var(--color-foreground);
   color: var(--color-foreground);

@@ -136,7 +136,7 @@ li {
   border-radius: 0.25em;
   white-space: nowrap;
   font-size: 0.875em;
-  /* opacity: 0; */
+  opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
   z-index: 10;

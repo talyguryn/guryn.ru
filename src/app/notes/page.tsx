@@ -5,6 +5,7 @@ import {
 } from '@/app/notes/utils';
 import Tag, { colorType } from '../components/Tag';
 import NoteCard from '../components/NoteCard';
+import BoostyBlock from '../components/BoostyBlock';
 
 export default async function Page() {
   const allNotes = getNotesPosts().sort((a, b) => {
@@ -45,6 +46,8 @@ export default async function Page() {
           </div>
         ))}
       </div>
+
+      <BoostyBlock />
 
       {/* <h2 className="text-lg font-semibold mb-4">Журналы проектов</h2>
       <div className="mb-4 flex flex-wrap gap-2">

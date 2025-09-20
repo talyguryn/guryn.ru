@@ -79,7 +79,7 @@ h6 {
 }
 
 p {
-  margin: 1em 0;
+  margin-top: 1em;
   line-height: 1.6;
 }
 
@@ -111,7 +111,7 @@ p {
 
 ol,
 ul {
-  margin: 0.5em 0;
+  margin-bottom: 0.5em;
   padding-left: 1.5em;
   list-style-position: outside;
   padding-top: 0;

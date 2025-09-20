@@ -62,7 +62,7 @@ function CodeBlock({ children, ...props }) {
   let codeHTML = highlight(children);
 
   return (
-    <div className="bg-blue-50 dark:bg-gray-900 dark:text-white mb-4 py-2 pb-3 rounded block relative overflow-hidden">
+    <div className="bg-blue-50 dark:bg-gray-900 dark:text-white my-4 py-2 pb-3 rounded block relative overflow-hidden">
       <div className="overflow-x-scroll px-4">
         <pre
           dangerouslySetInnerHTML={{ __html: codeHTML }}

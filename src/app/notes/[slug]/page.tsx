@@ -126,13 +126,17 @@ export default async function Notes({
         <CustomMDX source={post.content} />
       </article>
 
-      {post.metadata.tags && post.metadata.tags.length > 0 && (
-        <div className="mt-4">
+      {((post.metadata.tags && post.metadata.tags.length > 0) ||
+        (post.metadata.projects && post.metadata.projects.length > 0)) && (
+        <div className="mt-6">
           <div className="text-lg font-semibold mb-2">
-            Показать заметки по похожей теме
+            Показать заметки на похожие темы
           </div>
           <div className="flex flex-wrap gap-2">
-            {post.metadata.tags.map((tag) => (
+            {post.metadata.projects?.map((project: string) => (
+              <Tag key={project} tag={project} color={colorType.red} />
+            ))}
+            {post.metadata.tags?.map((tag) => (
               <Tag key={tag} tag={tag} />
             ))}
           </div>

@@ -25,7 +25,7 @@ export default function Tag({
     <a
       href={`/notes/tags/${tag}`}
       key={tag}
-      className={`${tagColor} px-3 py-1 pb-1.5 rounded-full text-sm cursor-pointer transition-colors not-underlined flex items-baseline gap-2`}
+      className={`${tagColor} px-3 py-1 pb-1.5 rounded-full text-sm cursor-pointer transition-colors not-underlined inline-flex items-baseline gap-1.5`}
     >
       <div className="">{tag}</div>
       {count !== undefined && (

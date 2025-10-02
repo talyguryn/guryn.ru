@@ -40,7 +40,29 @@ export default async function Page() {
       </div>
 
       <div>
-        {allNotes.slice(3).map((post) => (
+        {allNotes.slice(3, 6).map((post) => (
+          <div key={post.slug} className="mb-2">
+            <NoteCard post={post} />
+          </div>
+        ))}
+      </div>
+
+      <div className="pt-4 pb-8">
+        <div className=" font-semibold mb-3">Подборки заметок по проектам</div>
+        <div className="mb-4 flex flex-wrap gap-2">
+          {projectsCounts.map(({ project, count }) => (
+            <Tag
+              key={project}
+              tag={project}
+              count={count}
+              color={colorType.red}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div>
+        {allNotes.slice(6).map((post) => (
           <div key={post.slug} className="mb-2">
             <NoteCard post={post} />
           </div>
@@ -48,18 +70,6 @@ export default async function Page() {
       </div>
 
       <BoostyBlock />
-
-      {/* <h2 className="text-lg font-semibold mb-4">Журналы проектов</h2>
-      <div className="mb-4 flex flex-wrap gap-2">
-        {projectsCounts.map(({ project, count }) => (
-          <Tag
-            key={project}
-            tag={project}
-            count={count}
-            color={colorType.red}
-          />
-        ))}
-      </div> */}
     </>
   );
 }

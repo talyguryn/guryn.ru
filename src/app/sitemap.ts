@@ -1,4 +1,8 @@
-import { getNotesPosts, getTagsWithCount } from '@/app/notes/utils';
+import {
+  getNotesPosts,
+  getProjectsWithCount,
+  getTagsWithCount,
+} from '@/app/notes/utils';
 import { getHost } from '@/utils/host';
 
 export const baseUrl = getHost();
@@ -23,6 +27,12 @@ export default async function sitemap() {
     lastModified: new Date().toISOString().split('T')[0],
   }));
   sitemapList.push(...tags);
+
+  let projects = getProjectsWithCount().map(({ project }) => ({
+    url: `${baseUrl}/notes/tags/${project}`,
+    lastModified: new Date().toISOString().split('T')[0],
+  }));
+  sitemapList.push(...projects);
 
   return sitemapList;
 }

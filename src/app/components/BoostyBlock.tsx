@@ -11,7 +11,7 @@ const BoostyBlock = () => {
         target="_blank"
         rel="noopener noreferrer"
       >
-        Подписаться на Бусти
+        Открыть Бусти
       </a>
     </div>
   );

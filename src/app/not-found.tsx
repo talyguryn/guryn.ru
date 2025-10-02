@@ -4,10 +4,10 @@ export default function NotFound() {
       <h1 className="mb-8 text-2xl font-semibold tracking-tighter">
         Страница не найдена
       </h1>
-      <p className="mb-4">
+      <p className="">
         Если вы считаете, что это ошибка, пожалуйста, сообщите мне об этом.
       </p>
-      <p className="mb-4">
+      <p className="">
         Скажу, что{' '}
         <a className="text-blue-500 underlined" href="/">
           главная страница

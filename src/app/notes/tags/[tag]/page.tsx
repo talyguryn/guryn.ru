@@ -31,8 +31,22 @@ export async function generateMetadata({
   params: Promise<{ tag: string }>;
 }) {
   const { tag } = await params;
+
+  const projects = getProjectsWithCount();
+  const tags = getTagsWithCount();
+
+  let title = '';
+
+  if (projects.find(({ project }) => project === tag)) {
+    title = `Заметки по проекту «${tag}»`;
+  } else if (tags.find(({ tag: t }) => t === tag)) {
+    title = `Заметки на тему «${tag}»`;
+  } else {
+    return notFound();
+  }
+
   return {
-    title: `Заметки на тему «${tag}»`,
+    title,
     description: ``,
   };
 }

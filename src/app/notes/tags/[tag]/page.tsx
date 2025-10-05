@@ -9,10 +9,20 @@ import type { NotePost } from '@/app/notes/utils';
 import Tag, { colorType } from '@/app/components/Tag';
 
 export async function generateStaticParams() {
+  const staticParams: Array<{ tag: string }> = [];
+
+  const projects = getProjectsWithCount();
   const tags = getTagsWithCount();
-  return tags.map(({ tag }) => ({
-    tag,
-  }));
+
+  projects.forEach(({ project }) => {
+    staticParams.push({ tag: project });
+  });
+
+  tags.forEach(({ tag }) => {
+    staticParams.push({ tag });
+  });
+
+  return staticParams;
 }
 
 export async function generateMetadata({

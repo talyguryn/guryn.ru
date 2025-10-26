@@ -1,12 +1,18 @@
 import { baseUrl } from '@/app/sitemap';
 
 export default function robots() {
-  return {
+  const config = {
     rules: [
       {
         userAgent: '*',
       },
+      {
+        userAgent: '*',
+        disallow: ['/og'],
+      },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
   };
+
+  return config;
 }

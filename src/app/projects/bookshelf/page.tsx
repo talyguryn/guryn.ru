@@ -1,7 +1,6 @@
 'use client';
 
 import Book, { BookProps } from '@/app/components/Book';
-import BasicBlock from '@/app/components/LandingBlocks/BasicBlock';
 
 const sizeCoef = 2.8;
 const books: BookProps[] = [
@@ -152,11 +151,9 @@ const TutfeBooks: BookProps[] = [
 export default function Page() {
   return (
     <main className="">
-      <BasicBlock>
-        <h1 className="text-4xl font-semibold mb-4">Книжная полка</h1>
-      </BasicBlock>
+      <h1 className="text-4xl font-semibold mb-4">Книжная полка</h1>
 
-      <BasicBlock className="flex justify-start items-end overflow-x-scroll max-w-full">
+      <div className="flex justify-start items-end overflow-x-scroll max-w-full">
         {books.map((book) => (
           <Book
             key={book.name}
@@ -169,8 +166,8 @@ export default function Page() {
             size={book.size}
           />
         ))}
-      </BasicBlock>
-      <BasicBlock className="flex justify-start items-end overflow-x-scroll max-w-full">
+      </div>
+      <div className="flex justify-start items-end overflow-x-scroll max-w-full">
         {TutfeBooks.map((book) => (
           <Book
             key={book.name}
@@ -183,7 +180,7 @@ export default function Page() {
             size={book.size}
           />
         ))}
-      </BasicBlock>
+      </div>
     </main>
   );
 }

@@ -5,6 +5,7 @@ import { baseUrl } from '@/app/sitemap';
 import { BlogPosting, WithContext } from 'schema-dts';
 import Tag, { colorType } from '@/app/components/Tag';
 import BoostyBlock from '@/app/components/BoostyBlock';
+import MainLayout from '@/app/components/layouts/Main';
 
 type PageParams = {
   slug: string;
@@ -108,62 +109,64 @@ export default async function Notes({
   };
 
   return (
-    <section>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
-        }}
-      />
+    <MainLayout>
+      <section>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+          }}
+        />
 
-      <h1 className="title font-semibold text-2xl tracking-tighter">
-        {post.metadata.title}
-      </h1>
-      <div className="flex justify-between items-center mb-8 text-sm text-neutral-600 dark:text-neutral-400">
-        {formatDate(post.metadata.publishedAt)}
-      </div>
-      <article className="prose">
-        <CustomMDX source={post.content} />
-      </article>
-
-      {((post.metadata.tags && post.metadata.tags.length > 0) ||
-        (post.metadata.projects && post.metadata.projects.length > 0)) && (
-        <div className="mt-6">
-          <div className="text-lg font-semibold mb-2">
-            Показать заметки на похожие темы
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {post.metadata.projects?.map((project: string) => (
-              <Tag key={project} tag={project} color={colorType.red} />
-            ))}
-            {post.metadata.tags?.map((tag) => (
-              <Tag key={tag} tag={tag} />
-            ))}
-          </div>
+        <h1 className="title font-semibold text-2xl tracking-tighter">
+          {post.metadata.title}
+        </h1>
+        <div className="flex justify-between items-center mb-8 text-sm text-neutral-600 dark:text-neutral-400">
+          {formatDate(post.metadata.publishedAt)}
         </div>
-      )}
+        <article className="prose">
+          <CustomMDX source={post.content} />
+        </article>
 
-      <BoostyBlock />
-
-      <div>
-        {readMorePosts.length > 0 && (
-          <div className="mt-8">
-            <div className="text-xl font-semibold mb-4">Читать еще</div>
-            <div className="flex flex-col gap-3">
-              {readMorePosts.map((post) => (
-                <div key={post.slug}>
-                  <a
-                    href={`/notes/${post.slug}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {post.metadata.title}
-                  </a>
-                </div>
+        {((post.metadata.tags && post.metadata.tags.length > 0) ||
+          (post.metadata.projects && post.metadata.projects.length > 0)) && (
+          <div className="mt-6">
+            <div className="text-lg font-semibold mb-2">
+              Показать заметки на похожие темы
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {post.metadata.projects?.map((project: string) => (
+                <Tag key={project} tag={project} color={colorType.red} />
+              ))}
+              {post.metadata.tags?.map((tag) => (
+                <Tag key={tag} tag={tag} />
               ))}
             </div>
           </div>
         )}
-      </div>
-    </section>
+
+        <BoostyBlock />
+
+        <div>
+          {readMorePosts.length > 0 && (
+            <div className="mt-8">
+              <div className="text-xl font-semibold mb-4">Читать еще</div>
+              <div className="flex flex-col gap-3">
+                {readMorePosts.map((post) => (
+                  <div key={post.slug}>
+                    <a
+                      href={`/notes/${post.slug}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {post.metadata.title}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    </MainLayout>
   );
 }

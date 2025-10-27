@@ -7,6 +7,7 @@ import {
 } from '@/app/notes/utils';
 import type { NotePost } from '@/app/notes/utils';
 import Tag, { colorType } from '@/app/components/Tag';
+import MainLayout from '@/app/components/layouts/Main';
 
 export async function generateStaticParams() {
   const staticParams: Array<{ tag: string }> = [];
@@ -74,62 +75,64 @@ export default async function NotesTagPage({
   }
 
   return (
-    <section>
-      {/* if tag exists */}
-      {filteredPostsByTag.length > 0 && (
-        <>
-          <h1 className="title font-semibold text-2xl tracking-tighter !mb-6">
-            Заметки на тему «{tag}»
-          </h1>
-          <div className="flex flex-col gap-1">
-            {filteredPostsByTag.map((post: NotePost) => (
-              <NoteCard key={post.slug} post={post} />
-            ))}
-          </div>
+    <MainLayout>
+      <section>
+        {/* if tag exists */}
+        {filteredPostsByTag.length > 0 && (
+          <>
+            <h1 className="title font-semibold text-2xl tracking-tighter !mb-6">
+              Заметки на тему «{tag}»
+            </h1>
+            <div className="flex flex-col gap-1">
+              {filteredPostsByTag.map((post: NotePost) => (
+                <NoteCard key={post.slug} post={post} />
+              ))}
+            </div>
 
-          {/* show other tags for other tags list */}
-          <div className="mt-6">
-            <div className="text-lg font-semibold mb-2">
-              Показать заметки на другие темы
+            {/* show other tags for other tags list */}
+            <div className="mt-6">
+              <div className="text-lg font-semibold mb-2">
+                Показать заметки на другие темы
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {listedTags
+                  ?.filter((t) => t !== tag)
+                  .map((tag: string) => (
+                    <Tag key={tag} tag={tag} />
+                  ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {listedTags
-                ?.filter((t) => t !== tag)
-                .map((tag: string) => (
-                  <Tag key={tag} tag={tag} />
-                ))}
-            </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
 
-      {/* if project exists */}
-      {filteredPostsByProject.length > 0 && (
-        <div className="mt-8">
-          <h1 className="title font-semibold text-xl tracking-tighter !mb-6">
-            Заметки по проекту «{tag}»
-          </h1>
-          <div className="flex flex-col gap-1">
-            {filteredPostsByProject.map((post: NotePost) => (
-              <NoteCard key={post.slug} post={post} />
-            ))}
-          </div>
+        {/* if project exists */}
+        {filteredPostsByProject.length > 0 && (
+          <div className="mt-8">
+            <h1 className="title font-semibold text-xl tracking-tighter !mb-6">
+              Заметки по проекту «{tag}»
+            </h1>
+            <div className="flex flex-col gap-1">
+              {filteredPostsByProject.map((post: NotePost) => (
+                <NoteCard key={post.slug} post={post} />
+              ))}
+            </div>
 
-          {/* show project tags for other projects list */}
-          <div className="mt-6">
-            <div className="text-lg font-semibold mb-2">
-              Показать заметки о других проектах
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {listedProjects
-                ?.filter((project) => project !== tag)
-                .map((project: string) => (
-                  <Tag key={project} tag={project} color={colorType.red} />
-                ))}
+            {/* show project tags for other projects list */}
+            <div className="mt-6">
+              <div className="text-lg font-semibold mb-2">
+                Показать заметки о других проектах
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {listedProjects
+                  ?.filter((project) => project !== tag)
+                  .map((project: string) => (
+                    <Tag key={project} tag={project} color={colorType.red} />
+                  ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </section>
+        )}
+      </section>
+    </MainLayout>
   );
 }

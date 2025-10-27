@@ -6,6 +6,7 @@ import {
 import Tag, { colorType } from '../components/Tag';
 import NoteCard from '../components/NoteCard';
 import BoostyBlock from '../components/BoostyBlock';
+import MainLayout from '../components/layouts/Main';
 
 export default async function Page() {
   const allNotes = getNotesPosts().sort((a, b) => {
@@ -19,7 +20,7 @@ export default async function Page() {
   const projectsCounts = getProjectsWithCount();
 
   return (
-    <>
+    <MainLayout>
       <h1>Заметки</h1>
 
       <div>
@@ -70,6 +71,6 @@ export default async function Page() {
       </div>
 
       <BoostyBlock />
-    </>
+    </MainLayout>
   );
 }

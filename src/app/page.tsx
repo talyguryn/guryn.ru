@@ -1,5 +1,6 @@
 import ProjectsBlock from './components/ProjectsBlock';
 import NotesBlock from './components/NotesBlock';
+import MainLayout from './components/layouts/Main';
 
 export const metadata = {
   title: 'Виталий Гурын',
@@ -8,9 +9,9 @@ export const metadata = {
 
 export default async function Page() {
   return (
-    <div>
+    <MainLayout>
       <NotesBlock />
       <ProjectsBlock />
-    </div>
+    </MainLayout>
   );
 }

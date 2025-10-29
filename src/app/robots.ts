@@ -5,9 +5,6 @@ export default function robots() {
     rules: [
       {
         userAgent: '*',
-      },
-      {
-        userAgent: '*',
         disallow: ['/og'],
       },
     ],

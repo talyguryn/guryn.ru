@@ -3,6 +3,10 @@ import Script from 'next/script';
 const YM_COUNTER_ID = 97994166;
 
 const YandexMetrika = () => {
+  if (process.env.ENV == 'local') {
+    return null;
+  }
+
   return (
     <>
       {YM_COUNTER_ID && (

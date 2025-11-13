@@ -9,6 +9,7 @@ import { Copy } from 'lucide-react';
 import BrowserMockup from './BrowserMockup';
 import { FilesStructure } from './FilesStructure';
 import ChatMockup from './ChatMockup';
+import GetTelegramSubsCountBlock from './notes/get-telegram-subs-count/GetTelegramSubsCountBlock';
 
 function Table({ data }) {
   let headers = data.headers.map((header, index) => (
@@ -152,6 +153,7 @@ let components = {
   BrowserMockup,
   FilesStructure,
   ChatMockup,
+  GetTelegramSubsCountBlock,
 };
 
 export function CustomMDX(props) {

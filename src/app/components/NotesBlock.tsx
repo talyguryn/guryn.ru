@@ -3,7 +3,11 @@ import { getNotesPosts } from '@/app/notes/utils';
 import NoteCard from './NoteCard';
 import { pluralize } from '@/utils/texts';
 
-const NotesBlock: React.FC<{}> = ({}) => (
+interface NotesBlockProps {
+  count?: number;
+}
+
+const NotesBlock: React.FC<NotesBlockProps> = ({ count = 3 }) => (
   <>
     {getNotesPosts().length > 0 && (
       <div className="mb-16">
@@ -11,7 +15,7 @@ const NotesBlock: React.FC<{}> = ({}) => (
 
         <div className="grid grid-cols-1 md:grid-cols-1 gap-2">
           {getNotesPosts()
-            .slice(0, 3)
+            .slice(0, count)
             .map((post) => (
               <NoteCard key={post.slug} post={post} />
             ))}

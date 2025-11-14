@@ -42,7 +42,7 @@ const GetTelegramSubsCountBlock = () => {
   };
 
   return (
-    <div className="flex flex-col gap-2 mt-2 p-4 rounded-lg bg-gray-50">
+    <div className="flex flex-col gap-2 mt-2 p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
       <div>
         <span className="text-gray-400">t.me/</span>
         <input
@@ -65,7 +65,7 @@ const GetTelegramSubsCountBlock = () => {
       {/* <pre>{data && JSON.stringify(data, null, 2)}</pre> */}
       <button
         onClick={fetchSubsCount}
-        className="rounded bg-blue-200 text-blue-900 cursor-pointer mt-4 px-4 py-2 hover:bg-blue-300 hover:text-blue-950"
+        className="rounded bg-blue-200 text-blue-900 cursor-pointer mt-4 px-4 py-2 hover:bg-blue-300 hover:text-blue-950 dark:bg-blue-700 dark:text-blue-100 hover:dark:bg-blue-800 hover:dark:text-blue-100"
       >
         {result ? 'Обновить' : 'Показать'} количество подписчиков
       </button>

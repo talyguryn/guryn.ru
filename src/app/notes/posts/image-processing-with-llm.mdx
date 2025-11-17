@@ -1,0 +1,214 @@
+---
+title: 'Обрабатываем изображения с помощью нейросетей по API'
+summary: 'Пример оформления запроса и обработки ответа'
+publishedAt: '2025-11-17'
+tags: llm, ai
+---
+
+У меня возникла задача получить от пользователя картинку, обработать её с помощью нейросети и вернуть результат обратно. Разбираемся, как это сделать.
+
+Я использовал [openrouter.ai](https://openrouter.ai/) для доступа к моделям. Этот сервис предлагает удобный API для работы с различными моделями и единый счет для оплаты запросов.
+
+В этой заметке я с примерами кода расскажу, как подготовить изображение, оформить запрос к API и обработать ответ.
+
+## Подготовка изображения
+
+Предположим, что у нас уже есть какой-то пользовательский интерфейс, через который пользователь может отправить изображение. Например, это может быть веб-форма или бот в мессенджере.
+
+Чтобы скормить изображение модели, его нужно перевести в формат base64.
+
+Если у нас есть URL изображения, то можем скачать и прочитать файл:
+
+```typescript
+async function imageUrlToBase64(url: string): Promise<string> {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(reader.result as string);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+```
+
+Если же нужно получить изображение напрямую с устройства, можно использовать такой подход: создаем элемент `<input type="file">` для выбора файла, кликаем по нему программно, чтобы дать пользователю возможность выбрать файл. Затем читаем его.
+
+```typescript
+async function getUserImageBase64(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async () => {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve(reader.result as string);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      } else {
+        reject(new Error('No file selected'));
+      }
+    };
+    input.click();
+  });
+}
+```
+
+С получением изображения в base64 разобрались. Однако файл может быть слишком большим по разрешению или размеру. Поэтому перед отправкой на сервер стоит его оптимизировать — уменьшить размер и/или качество.
+
+Создадим еще одну функцию для сжатия изображения в формате base64:
+
+```typescript
+async function compressBase64Image(
+  base64: string,
+  quality: number = 0.8,
+  maxSize: number = 1200
+): Promise<string> {
+  return new Promise<string>((resolve) => {
+    const img = new Image();
+    img.src = base64;
+    img.onload = () => {
+      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+
+      const newWidth = img.width * scale;
+      const newHeight = img.height * scale;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = newWidth;
+      canvas.height = newHeight;
+
+      const ctx = canvas.getContext('2d');
+
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+        const newBase64 = canvas.toDataURL('image/jpeg', quality);
+
+        resolve(newBase64);
+      }
+    };
+  });
+}
+```
+
+Теперь мы точно знаем, как получить и подготовить изображение от пользователя.
+
+## Подготовка запроса к API
+
+Создадим переписку с моделью. Первым делом опишем системное сообщение, чтобы задать роль модели. Затем добавим пользовательское сообщение с нашим запросом и прикрепленным изображением.
+
+```typescript
+const imageBase64 = `data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...`;
+
+const messages = [
+  {
+    role: 'system',
+    content: [
+      {
+        type: 'text',
+        text: `You are a professional graphic designer and artist. You can apply various artistic effects to images based on user requests.`,
+      },
+    ],
+  },
+  {
+    role: 'user',
+    content: [
+      {
+        type: 'text',
+        text: `Use Van Gogh style to transform the following image.`,
+      },
+      {
+        type: 'image_url',
+        image_url: { url: imageBase64 },
+      },
+    ],
+  },
+];
+```
+
+По сути это все, что нужно, чтобы передать изображение в модель по API.
+
+Если вам нужно передать больше одного изображения, просто добавьте еще объекты с типом `image_url` в массив `content` в нужном сообщении.
+
+```typescript
+const messages = [
+  // ...
+  {
+    role: 'user',
+    content: [
+      {
+        type: 'image_url',
+        image_url: { url: imageBase64_1 },
+      },
+      {
+        type: 'image_url',
+        image_url: { url: imageBase64_2 },
+      },
+      {
+        type: 'image_url',
+        image_url: { url: imageBase64_3 },
+      },
+    ],
+  },
+];
+```
+
+## Отправка запроса и обработка ответа
+
+Теперь осталось оформить сам запрос к API и обработать ответ. Вы можете использовать `fetch`, HTTP-библиотеку или готовый пакет для работы с моделями, например, [openai](https://www.npmjs.com/package/openai).
+
+Я, как уже говорил, использую [openrouter.ai](https://openrouter.ai/) в качестве сервера. Вот пример кода с использованием библиотеки `openai`:
+
+```typescript
+import { OpenAI } from 'openai';
+
+const server = new OpenAI({
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
+
+export async function processImageWithLLM(messages) {
+  const model = 'google/gemini-2.5-flash-image-preview';
+
+  try {
+    const completion = await server.chat.completions.create({
+      model,
+      messages,
+    });
+
+    const images = completion.choices[0].message.images;
+
+    if (!Array.isArray(images)) {
+      throw new Error('No images returned from model');
+    }
+
+    for (const image of images) {
+      if (image.type === 'image_url' && image.image_url?.url) {
+        const imageUrl = image.image_url.url;
+
+        // Download the image and save it locally
+        const response = await fetch(imageUrl);
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // image to base64
+        const base64Image = buffer.toString('base64');
+
+        return `data:image/png;base64,${base64Image}`;
+      }
+    }
+  } catch (error) {
+    console.error('Error processing image with LLM:', error);
+    throw error;
+  }
+}
+```
+
+Модели отдают результат в виде URL изображений. В примере я скачиваю первое изображение из ответа и конвертирую его в base64, чтобы можно было сразу использовать в вебе.
+
+Вот и все! Мы разобрали, как получить изображение от пользователя, подготовить его, оформить запрос к модели с помощью API и обработать ответ. Теперь вы можете использовать этот подход для создания различных приложений с обработкой изображений на основе нейросетей.

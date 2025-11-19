@@ -3,7 +3,7 @@ import Image from 'next/image';
 export type ChatProps = {
   chatTitle?: string;
   messages: {
-    role: 'user' | 'assistant';
+    role: 'user' | 'assistant' | 'system';
     user?: {
       image?: string;
       name?: string;
@@ -48,12 +48,18 @@ export default function ChatMockup({
       <div className="space-y-4">
         {messages.map((msg, idx) => {
           const isUser = msg.role === 'user';
+          const isAssistant = msg.role === 'assistant';
+          const isSystem = msg.role === 'system';
+
           return (
             <div
               key={idx}
-              className={`flex items-start gap-2 ${
-                isUser ? 'justify-end' : 'justify-start'
-              }`}
+              className={`flex items-start gap-2 justify-start ${
+                isUser ? '!justify-end' : ''
+              }
+              ${isSystem ? '!justify-center' : ''}
+
+              `}
             >
               {!isUser && msg.user?.image && (
                 <Image
@@ -65,11 +71,19 @@ export default function ChatMockup({
                 />
               )}
               <div
-                className={`max-w-xs sm:max-w-md rounded-xl px-4 py-2 shadow ${
-                  isUser
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
-                }`}
+                className={` rounded-xl px-4 py-2 shadow
+                  ${isUser ? 'bg-blue-500 text-white' : ''}
+                  ${
+                    isAssistant
+                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
+                      : ''
+                  }
+                  ${
+                    isSystem
+                      ? 'w-full bg-yellow-100 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 italic'
+                      : 'max-w-xs sm:max-w-md'
+                  }
+                `}
               >
                 {msg.user?.name && !isUser && (
                   <div className="text-sm font-bold mb-2">{msg.user.name}</div>

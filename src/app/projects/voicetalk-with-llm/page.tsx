@@ -7,50 +7,11 @@ interface Message {
   content: string
 }
 
-interface MarkdownTextProps {
-  text: string
-}
-
-interface OllamaTagsResponse {
-  models: Array<{ name: string }>
-}
-
-interface OpenAIModel {
-  id: string
-}
-
-interface OpenAIModelsResponse {
-  data: OpenAIModel[]
-}
-
-interface ChatCompletionDelta {
-  choices: Array<{
-    delta: {
-      content?: string
-    }
-  }>
-}
-
-interface ChatCompletionResponse {
-  choices: Array<{
-    message?: {
-      content: string
-    }
-    text?: string
-  }>
-  message?: {
-    content: string
-  }
-  response?: string
-  error?: {
-    message: string
-  }
-}
-
 const SILENCE_MS = 5000
+const LLM_PROXY_ENDPOINT = '/api/llm'
 
 // Simple markdown renderer
-const MarkdownText = ({ text}: { text: string }) => {
+const MarkdownText = ({ text }: { text: string }) => {
   const renderMarkdown = (content: string) => {
     if (!content) return ''
 
@@ -90,7 +51,7 @@ export default function VoiceTalkWithLLM() {
   const [loading, setLoading] = useState(false)
   const [assistantTyping, setAssistantTyping] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [availableModels, setAvailableModels] = useState([])
+  const [availableModels, setAvailableModels] = useState<string[]>([])
   const [connectionStatus, setConnectionStatus] = useState('checking') // 'checking', 'connected', 'error'
   const [connectionError, setConnectionError] = useState('')
   const [voiceMode, setVoiceMode] = useState(false) // Toggle for continuous voice interaction
@@ -124,54 +85,40 @@ export default function VoiceTalkWithLLM() {
     setConnectionError('')
 
     try {
-      // Try Ollama API format first
-      const ollamaRes = await fetch(`${baseUrl.replace('/v1', '')}/api/tags`, {
+      const proxyRes = await fetch(LLM_PROXY_ENDPOINT, {
+        method: 'POST',
         headers: {
-          ...(apiKey && { "Authorization": `Bearer ${apiKey}` }),
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          type: 'models',
+          baseUrl,
+          apiKey,
+          model,
+        }),
       })
 
-      if (ollamaRes.ok) {
-        const data = await ollamaRes.json()
-        if (data.models && Array.isArray(data.models)) {
-          const models = data.models.map((m: { name: string }) => m.name)
-          setAvailableModels(models)
-          setConnectionStatus('connected')
+      const data = await proxyRes.json()
 
-          // Check if current model exists
-          if (model && !models.includes(model)) {
-            setConnectionError(`Модель "${model}" не найдена. Доступные: ${models.join(', ')}`)
-            if (models.length > 0) {
-              setModel(models[0])
-              localStorage.setItem('llm_model', models[0])
-            }
-          }
-          return
-        }
+      if (!proxyRes.ok) {
+        throw new Error(data?.error || 'Не удалось получить список моделей')
       }
 
-      // Try OpenAI-compatible API
-      const openaiRes = await fetch(`${baseUrl}/models`, {
-        headers: {
-          ...(apiKey && { "Authorization": `Bearer ${apiKey}` }),
-        },
-      })
+      if (data.models && Array.isArray(data.models)) {
+        const models: string[] = data.models
+        setAvailableModels(models)
+        setConnectionStatus('connected')
 
-      if (openaiRes.ok) {
-        const data = await openaiRes.json()
-        if (data.data && Array.isArray(data.data)) {
-          const models = data.data.map((m: OpenAIModel) => m.id)
-          setAvailableModels(models)
-          setConnectionStatus('connected')
-
-          if (model && !models.includes(model)) {
-            setConnectionError(`Модель "${model}" не найдена. Доступные: ${models.join(', ')}`)
-          }
-          return
+        if (model && models.length > 0 && !models.includes(model)) {
+          setConnectionError(`Модель "${model}" не найдена. Доступные: ${models.join(', ')}`)
+          setModel(models[0])
+          localStorage.setItem('llm_model', models[0])
+        } else if (data.warning) {
+          setConnectionError(data.warning)
         }
+        return
       }
 
-      // If both fail, still allow manual entry
       setConnectionStatus('connected')
       setConnectionError('Не удалось получить список моделей. Введите имя модели вручную.')
 
@@ -292,14 +239,16 @@ export default function VoiceTalkWithLLM() {
 
       if (useStream) {
         try {
-          const res = await fetch(`${baseUrl}/chat/completions`, {
+          const res = await fetch(LLM_PROXY_ENDPOINT, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              ...(apiKey && { "Authorization": `Bearer ${apiKey}` }),
             },
             body: JSON.stringify({
-              model: model,
+              type: 'chat',
+              baseUrl,
+              apiKey,
+              model,
               messages: history,
               stream: true,
             }),
@@ -310,63 +259,63 @@ export default function VoiceTalkWithLLM() {
             useStream = false
           } else {
 
-        let assistantText = ""
-        setAssistantTyping(true)
-        // @ts-ignore
-        setMessages((prev) => {
-          const next = [...prev, { role: "assistant", content: "" }]
-          // @ts-ignore
-          messagesRef.current = next
-          return next
-        })
-
-        const reader = res.body.getReader()
-        const decoder = new TextDecoder()
-
-        const updateAssistant = (text: string) => {
-          setMessages((prev) => {
-            const next: Message[] = [...prev]
-            const idx = next.length - 1
-            if (idx >= 0 && next[idx].role === "assistant") {
-              next[idx] = { ...next[idx], content: text }
+            let assistantText = ""
+            setAssistantTyping(true)
+            // @ts-ignore
+            setMessages((prev) => {
+              const next = [...prev, { role: "assistant", content: "" }]
+              // @ts-ignore
               messagesRef.current = next
-            }
-            return next
-          })
-        }
+              return next
+            })
 
-        let done = false
-        let buffer = ""
-        while (!done) {
-          const chunk = await reader.read()
-          done = chunk.done
-          buffer += decoder.decode(chunk.value || new Uint8Array(), { stream: !done })
-          const parts = buffer.split("\n\n")
-          buffer = parts.pop() ?? ""
-          for (const part of parts) {
-            const line = part.trim()
-            if (!line.startsWith("data:")) continue
-            const payloadStr = line.slice(5).trim()
-            if (payloadStr === "[DONE]") {
-              done = true
-              break
+            const reader = res.body.getReader()
+            const decoder = new TextDecoder()
+
+            const updateAssistant = (text: string) => {
+              setMessages((prev) => {
+                const next: Message[] = [...prev]
+                const idx = next.length - 1
+                if (idx >= 0 && next[idx].role === "assistant") {
+                  next[idx] = { ...next[idx], content: text }
+                  messagesRef.current = next
+                }
+                return next
+              })
             }
-            if (!payloadStr) continue
-            try {
-              const json = JSON.parse(payloadStr)
-              const delta = json?.choices?.[0]?.delta?.content ?? ""
-              if (delta) {
-                assistantText += delta
-                updateAssistant(assistantText)
+
+            let done = false
+            let buffer = ""
+            while (!done) {
+              const chunk = await reader.read()
+              done = chunk.done
+              buffer += decoder.decode(chunk.value || new Uint8Array(), { stream: !done })
+              const parts = buffer.split("\n\n")
+              buffer = parts.pop() ?? ""
+              for (const part of parts) {
+                const line = part.trim()
+                if (!line.startsWith("data:")) continue
+                const payloadStr = line.slice(5).trim()
+                if (payloadStr === "[DONE]") {
+                  done = true
+                  break
+                }
+                if (!payloadStr) continue
+                try {
+                  const json = JSON.parse(payloadStr)
+                  const delta = json?.choices?.[0]?.delta?.content ?? ""
+                  if (delta) {
+                    assistantText += delta
+                    updateAssistant(assistantText)
+                  }
+                } catch (e) {
+                  console.error("Failed to parse chunk:", e, payloadStr)
+                }
               }
-            } catch (e) {
-              console.error("Failed to parse chunk:", e, payloadStr)
             }
-          }
-        }
 
-        setAssistantTyping(false)
-        speak(assistantText)
+            setAssistantTyping(false)
+            speak(assistantText)
           }
         } catch (streamErr) {
           console.warn("Stream failed, retrying without stream:", streamErr)
@@ -376,14 +325,16 @@ export default function VoiceTalkWithLLM() {
       }
 
       if (!useStream) {
-        const res = await fetch(`${baseUrl}/chat/completions`, {
+        const res = await fetch(LLM_PROXY_ENDPOINT, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(apiKey && { "Authorization": `Bearer ${apiKey}` }),
           },
           body: JSON.stringify({
-            model: model,
+            type: 'chat',
+            baseUrl,
+            apiKey,
+            model,
             messages: history,
             stream: false,
           }),
@@ -491,7 +442,7 @@ export default function VoiceTalkWithLLM() {
                   value={baseUrl}
                   onChange={(e) => setBaseUrl(e.target.value)}
                   className="w-full border p-2 rounded"
-                  placeholder="http://localhost:11434/v1"
+                  placeholder="http://localhost:11434/v1 or https://api.openai.com/v1"
                 />
               </div>
               <div>
@@ -573,7 +524,7 @@ export default function VoiceTalkWithLLM() {
           </div>
         )}
 
-  {!hasSpeechSupport && <div className="text-sm text-red-600 mb-2">Web Speech API недоступен</div>}
+        {!hasSpeechSupport && <div className="text-sm text-red-600 mb-2">Web Speech API недоступен</div>}
 
         {connectionStatus === 'checking' && (
           <div className="text-sm text-blue-600 mb-2">🔄 Проверка подключения...</div>
@@ -595,9 +546,8 @@ export default function VoiceTalkWithLLM() {
           {messages.map((m, i) => (
             <div key={i} className={m.role === "user" ? "text-right" : ""}>
               <div
-                className={`inline-block px-3 py-1 rounded ${
-                  m.role === "user" ? "bg-blue-100" : "bg-gray-200"
-                }`}
+                className={`inline-block px-3 py-1 rounded ${m.role === "user" ? "bg-blue-100" : "bg-gray-200"
+                  }`}
               >
                 <b>{m.role}:</b> {m.content ? <MarkdownText text={m.content} /> : (assistantTyping && m.role === "assistant" ? "..." : "")}
               </div>
@@ -628,9 +578,8 @@ export default function VoiceTalkWithLLM() {
                   }
                 }}
                 disabled={!hasSpeechSupport}
-                className={`px-4 py-2 rounded text-white ${
-                  voiceMode ? "bg-purple-600" : "bg-blue-500"
-                } disabled:opacity-50`}
+                className={`px-4 py-2 rounded text-white ${voiceMode ? "bg-purple-600" : "bg-blue-500"
+                  } disabled:opacity-50`}
               >
                 {voiceMode ? "🔊 Режим диалога активен" : "💬 Включить режим диалога"}
               </button>

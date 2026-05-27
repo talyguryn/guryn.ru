@@ -10,6 +10,7 @@ import BrowserMockup from './BrowserMockup';
 import { FilesStructure } from './FilesStructure';
 import ChatMockup from './ChatMockup';
 import GetTelegramSubsCountBlock from './notes/get-telegram-subs-count/GetTelegramSubsCountBlock';
+import GetYoutubeSubsCountBlock from './notes/get-youtube-subs-count/GetYoutubeSubsCountBlock';
 
 function Table({ data }) {
   let headers = data.headers.map((header, index) => (
@@ -154,6 +155,7 @@ let components = {
   FilesStructure,
   ChatMockup,
   GetTelegramSubsCountBlock,
+  GetYoutubeSubsCountBlock,
 };
 
 export function CustomMDX(props) {

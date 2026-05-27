@@ -1,0 +1,216 @@
+---
+title: 'Получаем число подписчиков YouTube-канала'
+summary: 'Как получить подписчиков и метаданные канала через парсинг страницы About'
+publishedAt: '2026-04-18'
+tags: api, youtube
+---
+
+Для Telegram я уже делал похожую заметку. На YouTube задача немного сложнее, но принцип тот же: если нет простого публичного API под конкретную задачу, можно аккуратно распарсить веб-страницу канала.
+
+Цель — сделать функцию и API-эндпоинт, который возвращает число подписчиков YouTube-канала. В расширенном варианте хочется получить еще:
+
+- ссылку на изображение профиля;
+- название канала;
+- ссылку на канал;
+- описание;
+- количество подписчиков;
+- количество видео;
+- количество просмотров;
+- дату регистрации.
+
+## План
+
+У публичного канала есть страница формата `https://www.youtube.com/@channel/about`. На ней в блоке `...more` показывается нужная информация: описание, ссылки, страна, дата регистрации, подписчики, видео и просмотры.
+
+Если открыть исходник страницы, можно найти JSON-объект `ytInitialData`. Внутри него есть `aboutChannelViewModel`, где уже лежат нужные поля:
+
+- `subscriberCountText`
+- `videoCountText`
+- `viewCountText`
+- `joinedDateText`
+- `description`
+- `canonicalChannelUrl`
+
+А данные аватарки и названия удобно брать из `channelMetadataRenderer`.
+
+## Решение
+
+Ниже пример функции на TypeScript, которая делает запрос к странице `about`, извлекает `ytInitialData` и возвращает подписчиков и другие метаданные.
+
+```typescript
+import axios from 'axios';
+
+type UnknownRecord = Record<string, unknown>;
+
+function extractInitialData(html: string): UnknownRecord | null {
+  const match = html.match(/var ytInitialData\s*=\s*(\{[\s\S]*?\});<\/script>/);
+  if (!match?.[1]) return null;
+
+  try {
+    return JSON.parse(match[1]) as UnknownRecord;
+  } catch {
+    return null;
+  }
+}
+
+function findObjectByKey(root: unknown, key: string): UnknownRecord | null {
+  const queue: unknown[] = [root];
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (!current || typeof current !== 'object') continue;
+
+    const record = current as UnknownRecord;
+
+    if (key in record && record[key] && typeof record[key] === 'object') {
+      return record[key] as UnknownRecord;
+    }
+
+    if (Array.isArray(current)) queue.push(...current);
+    else queue.push(...Object.values(record));
+  }
+
+  return null;
+}
+
+function getString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function parseCount(text: string | null): number | null {
+  if (!text) return null;
+
+  const normalized = text.replace(/,/g, '').trim();
+  const match = normalized.match(/([\d.]+)\s*([KMB])?/i);
+  if (!match?.[1]) return null;
+
+  const base = Number.parseFloat(match[1]);
+  if (!Number.isFinite(base)) return null;
+
+  const suffix = (match[2] || '').toUpperCase();
+  const multiplier =
+    suffix === 'K'
+      ? 1_000
+      : suffix === 'M'
+        ? 1_000_000
+        : suffix === 'B'
+          ? 1_000_000_000
+          : 1;
+
+  return Math.round(base * multiplier);
+}
+
+export async function getYoutubeChannelInfo(channel: string) {
+  const url = `https://www.youtube.com/${channel}/about?hl=en`;
+
+  const { data: html } = await axios.get<string>(url, {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36',
+      'Accept-Language': 'en-US,en;q=0.9',
+    },
+  });
+
+  const initialData = extractInitialData(html);
+  if (!initialData) {
+    throw new Error('Failed to parse ytInitialData');
+  }
+
+  const about = findObjectByKey(initialData, 'aboutChannelViewModel');
+  const metadata = findObjectByKey(initialData, 'channelMetadataRenderer');
+
+  const subscribersText = getString(about?.subscriberCountText);
+  const videosText = getString(about?.videoCountText);
+  const viewsText = getString(about?.viewCountText);
+
+  return {
+    title: getString(metadata?.title),
+    description:
+      getString(about?.description) || getString(metadata?.description),
+    link:
+      getString(about?.canonicalChannelUrl) || getString(metadata?.channelUrl),
+    subscribersText,
+    subscribers: parseCount(subscribersText),
+    videosText,
+    videos: parseCount(videosText),
+    viewsText,
+    views: parseCount(viewsText),
+    joinedAt:
+      typeof about?.joinedDateText === 'string'
+        ? about.joinedDateText
+        : getString(
+            (about?.joinedDateText as UnknownRecord | undefined)?.content
+          ),
+  };
+}
+```
+
+Эта функция не завязана на CSS-селекторы страницы. Вместо этого она читает встроенный JSON, в котором данные более структурированы.
+
+## API-эндпоинт
+
+Я обернул эту логику в API-роут:
+
+`/api/get-youtube-subscribers-count?channel=@talyguryn`
+
+Он принимает разные форматы входа:
+
+- `@username`
+- полный URL канала
+- `UC...` channel id
+
+И возвращает JSON с подписчиками и дополнительными метаданными.
+
+## Пример использования
+
+Можно проверить в браузере или через curl:
+
+Или сразу протестировать вживую прямо в заметке:
+
+<GetYoutubeSubsCountBlock />
+
+```bash
+curl 'https://your-domain.com/api/get-youtube-subscribers-count?channel=@talyguryn'
+```
+
+Пример ответа:
+
+```json
+{
+  "uri": "@talyguryn",
+  "link": "http://www.youtube.com/@talyguryn",
+  "title": "Мастерская Тали",
+  "description": "пишу код и делюсь мыслями",
+  "image": "https://yt3.googleusercontent.com/...",
+  "updatedAt": "2026-04-18T12:00:00.000Z",
+  "subscribers": 52,
+  "subscribersText": "52 subscribers",
+  "videos": 17,
+  "videosText": "17 videos",
+  "views": 5995,
+  "viewsText": "5,995 views",
+  "joinedAt": "Joined Feb 8, 2013"
+}
+```
+
+## Улучшения
+
+Что можно улучшить дальше:
+
+- добавить кэширование на 5-10 минут;
+- нормализовать язык ответа (например, `joinedAt` в ISO-дату);
+- добавить rate-limit на эндпоинт;
+- отдавать `raw` и `parsed` поля отдельно для удобной отладки;
+- добавить fallback через YouTube Data API v3 (если есть ключ).
+
+## Ограничения
+
+Решение неофициальное. Если YouTube изменит структуру `ytInitialData`, парсер придется обновить.
+
+Также важно не спамить запросами, особенно если эндпоинт публичный.
+
+## Финал
+
+Вот так можно получить число подписчиков YouTube-канала и дополнительные данные из блока `...more` на странице `about`.
+
+Для небольших внутренних задач и персональных проектов этого часто более чем достаточно.
